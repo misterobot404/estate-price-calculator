@@ -1,23 +1,47 @@
 import {createRouter, createWebHistory} from "vue-router"
-import Home from "./pages/Home"
-import Login from "./pages/Login"
-import store from "./store";
+import Calculator from "./pages/Calculator"
+import History from "./pages/History"
+import Settings from "./pages/Settings"
+import Signin from "./pages/Signin"
+import Signup from "./pages/Signup"
+import store from "./store"
 
 const routes = [
     {
         path: '/',
-        redirect: '/home'
+        redirect: '/calculator'
     },
     {
-        path: '/login',
-        component: Login,
+        path: '/signin',
+        component: Signin,
         meta: {
             hideLayout: true
         }
     },
     {
-        path: '/home',
-        component: Home,
+        path: '/signup',
+        component: Signup,
+        meta: {
+            hideLayout: true
+        }
+    },
+    {
+        path: '/calculator',
+        component: Calculator,
+        meta: {
+            middlewareAuth: true,
+        }
+    },
+    {
+        path: '/history',
+        component: History,
+        meta: {
+            middlewareAuth: true,
+        }
+    },
+    {
+        path: '/settings',
+        component: Settings,
         meta: {
             middlewareAuth: true,
         }
@@ -31,10 +55,10 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     // checking access to the router
-    if (to.matched.some(record => record.meta.middlewareAuth) && !store.getters['auth/isAuth']) {
-        next('/login')
+    /*if (to.matched.some(record => record.meta.middlewareAuth) && !store.getters['auth/isAuth']) {
+        next('/signin')
     }
-    else next()
+    else */next()
 })
 
 export default router
