@@ -4,28 +4,27 @@ import router from "./router"
 
 const store = new Vuex.Store({
     state: {
-        token: window.localStorage.getItem('token')
+        token: window.localStorage.getItem('token'),
+        user: JSON.parse(window.localStorage.getItem('user'))
     },
     getters: {
-        isAuth: state => state.token
+        isAuth: state => Boolean(state.token)
     },
     actions: {
-        login({state, commit, dispatch}, payload) {
-            return axios.post('/api/login', payload)
-                .then(response => {
-                    commit('LOGIN', {token: response.data.data.token, user: response.data.data.user});
-                })
+        signup({state, commit, dispatch}, payload) {
+            return axios.post('/api/signup', payload).then(() => dispatch('signin', payload))
+        },
+        signin({state, commit, dispatch}, payload) {
+            return axios.post('/api/signin', payload)
+                .then(response => commit('SIGNIN', {token: response.data.data.token, user: response.data.data.user}))
         },
         logout({commit}) {
             return axios.post('/api/logout')
-                .then(_ => {
-                    commit('LOGOUT');
-                    commit('tiles/SET_TILES', null, {root: true});
-                })
+                .then(() => commit('LOGOUT'))
         }
     },
     mutations: {
-        LOGIN: (state, payload) => {
+        SIGNIN: (state, payload) => {
             state.token = payload.token;
             state.user = payload.user;
 
@@ -45,8 +44,7 @@ const store = new Vuex.Store({
             // remove token to axios header
             delete axios.defaults.headers.common['Authorization'];
 
-            // if the user was on page with auth middleware
-            if (router.currentRoute.meta.middlewareAuth) router.push('/');
+            router.push('/signin');
         }
     }
 })
