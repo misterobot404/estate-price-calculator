@@ -17794,24 +17794,23 @@ __webpack_require__.r(__webpack_exports__);
         }
       }).then(function () {
         _this.objects.push({});
-        // Функция ymaps.ready() будет вызвана, когда
-        // загрузятся все компоненты API, а также когда будет готово DOM-дерево.
-        ymaps.ready(init);
-        function init() {
-          // Создание карты.
-          var myMap = new ymaps.Map("map", {
-            // Координаты центра карты.
-            // Порядок по умолчанию: «широта, долгота».
-            // Чтобы не определять координаты центра карты вручную,
-            // воспользуйтесь инструментом Определение координат.
-            center: [55.76, 37.64],
-            // Уровень масштабирования. Допустимые значения:
-            // от 0 (весь мир) до 19.
-            zoom: 7
-          });
-        }
+        _this.initMap();
       })["finally"](function () {
         return _this.file_of_objects_loading = false;
+      });
+    },
+    initMap: function initMap() {
+      ymaps.ready().then(function () {
+        var myMap = new ymaps.Map('map', {
+          center: [55.76, 37.64],
+          zoom: 10
+        }, {
+          // Автоматически растягивать карту по размерам контейнера
+          autoFitToViewport: 'always'
+        });
+        // Удаляем нерабочие кнопки-функции с карты
+        myMap.controls.remove('geolocationControl');
+        myMap.controls.remove('searchControl');
       });
     }
   }
@@ -18136,11 +18135,7 @@ var _hoisted_1 = {
 };
 var _hoisted_2 = {
   key: 0,
-  id: "map",
-  style: {
-    "width": "600px",
-    "height": "400px"
-  }
+  id: "map"
 };
 var _hoisted_3 = {
   "class": "position-absolute-center"
@@ -18151,14 +18146,9 @@ var _hoisted_4 = {
 var _hoisted_5 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
     "class": "text-h8 q-mt-md"
-  }, "Получение данных...", -1 /* HOISTED */);
-});
-var _hoisted_6 = /*#__PURE__*/_withScopeId(function () {
-  return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": "text-h8 q-mt-md"
   }, "Загрузите файл", -1 /* HOISTED */);
 });
-var _hoisted_7 = /*#__PURE__*/_withScopeId(function () {
+var _hoisted_6 = /*#__PURE__*/_withScopeId(function () {
   return /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
     "class": "q-mt-sm"
   }, [/*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)("Выберите или перенесите сюда Excel файл со списком"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("br"), /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)("объектов недвижимости для оценки")], -1 /* HOISTED */);
@@ -18166,8 +18156,8 @@ var _hoisted_7 = /*#__PURE__*/_withScopeId(function () {
 
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_q_file = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-file");
-  var _component_q_img = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-img");
   var _component_q_spinner_gears = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-spinner-gears");
+  var _component_q_img = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-img");
   var _component_q_btn = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-btn");
   return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)(" Нет ни одного загруженного объекта "), $data.objects.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_2)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
     key: 1
@@ -18186,18 +18176,17 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       width: '800px',
       borderRadius: '1rem'
     }
-  }, null, 8 /* PROPS */, ["modelValue"])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_4, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_img, {
-    src: "/images/load-file-placeholder.svg",
-    width: "248px"
-  }), $data.file_of_objects_loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
-    key: 0
-  }, [_hoisted_5, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_spinner_gears, {
+  }, null, 8 /* PROPS */, ["modelValue"])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_4, [$data.file_of_objects_loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_q_spinner_gears, {
+    key: 0,
     color: "primary",
     "class": "q-mt-md",
-    size: "6em"
-  })], 64 /* STABLE_FRAGMENT */)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+    size: "8em"
+  })) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
     key: 1
-  }, [_hoisted_6, _hoisted_7, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_img, {
+    src: "/images/load-file-placeholder.svg",
+    width: "248px"
+  }), _hoisted_5, _hoisted_6, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
     flat: "",
     color: "primary",
     label: "Образец файла",
@@ -20748,7 +20737,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".example_excel_btn[data-v-0250276a] {\n  pointer-events: all;\n  margin-top: 16px;\n}\n.position-absolute-center[data-v-0250276a] {\n  position: absolute;\n  top: 350px;\n  left: 50%;\n  transform: translate(-50%, -50%);\n}\n.load-file-placeholder[data-v-0250276a] {\n  width: 800px;\n  height: 520px;\n  pointer-events: none;\n  background-color: #FAFAFA;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  border: 2px dashed #1976d2;\n  border-radius: 1rem;\n  text-align: center;\n}", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, ".example_excel_btn[data-v-0250276a] {\n  pointer-events: all;\n  margin-top: 16px;\n}\n.position-absolute-center[data-v-0250276a] {\n  position: absolute;\n  top: 350px;\n  left: 50%;\n  transform: translate(-50%, -50%);\n}\n.load-file-placeholder[data-v-0250276a] {\n  width: 800px;\n  height: 520px;\n  pointer-events: none;\n  background-color: #FAFAFA;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  border: 2px dashed #1976d2;\n  border-radius: 1rem;\n  text-align: center;\n}\n#map[data-v-0250276a] {\n  width: 100vw;\n  height: calc(100vh - 138px);\n}", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
