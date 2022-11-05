@@ -4,11 +4,24 @@ import router from "./router"
 
 const store = new Vuex.Store({
     state: {
+        // user
         token: window.localStorage.getItem('token'),
-        user: JSON.parse(window.localStorage.getItem('user'))
+        user: JSON.parse(window.localStorage.getItem('user')),
+
+        // Флаг отображающий, входил ли пользователь в calculation хоть раз
+        // Необходим для первичной инициализации состояния калькулятора
+        entry_to_calculation: false,
+
+        // Справочники: ТипСостояния, ТипСегмента, ТипМатериалаСтен, ТипКоличестваКомнат
+        // Структура: Id - название
+        reference_books: null
     },
     getters: {
-        isAuth: state => Boolean(state.token)
+        isAuth: state => Boolean(state.token),
+        nameOfConditionById: (state) => (id) => state.reference_books.type_of_condition.find(condition => condition.id === id).Название,
+        nameOfNumberRoomsById: (state) => (id) => state.reference_books.type_of_number_rooms.find(el => el.id === id).Название,
+        nameOfSegmentById: (state) => (id) => state.reference_books.type_of_segment.find(segment => segment.id === id).Название,
+        nameOfWallById: (state) => (id) => state.reference_books.type_of_wall.find(wall => wall.id === id).Название,
     },
     actions: {
         signup({state, commit, dispatch}, payload) {
@@ -45,7 +58,14 @@ const store = new Vuex.Store({
             delete axios.defaults.headers.common['Authorization'];
 
             router.push('/signin');
-        }
+        },
+        ENTRY_TO_CALCULATION_DONE: (state) => {
+            state.entry_to_calculation = true;
+        },
+        SET_REFERENCE_BOOKS: (state, reference_books) => {
+            state.reference_books = reference_books;
+        },
+
     }
 })
 

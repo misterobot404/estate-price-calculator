@@ -34,7 +34,7 @@ export default {
         send() {
             this.loading = true;
             this.$store.dispatch('signup', {name: this.name, email: this.email, password: this.password})
-                .then(() => router.push('/calculator').then(() =>
+                .then(() => router.push('/').then(() =>
                     this.$q.notify({
                         color: 'primary',
                         message: 'Учётная запись успешно зарегистрирована',

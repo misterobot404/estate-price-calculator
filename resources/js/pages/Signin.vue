@@ -31,7 +31,7 @@ export default {
         send() {
             this.loading = true;
             this.$store.dispatch('signin', {email: this.email, password: this.password})
-                .then(() => router.push('/calculator'))
+                .then(() => router.push('/'))
                 .catch((response) => this.$q.notify({
                     message: response.data.message,
                     icon: 'error_outline',

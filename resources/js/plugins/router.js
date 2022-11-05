@@ -1,11 +1,14 @@
 import {createRouter, createWebHistory} from "vue-router"
-import Calculator from "../pages/Calculator"
 import History from "../pages/History"
 import Settings from "../pages/Settings"
 import Guide from "../pages/Guide"
 import Signin from "../pages/Signin"
 import Signup from "../pages/Signup"
 import store from "./store"
+import Entry from "../pages/Calculator/Entry"
+import Upload from "../pages/Calculator/Step1_Upload"
+import Pools from "../pages/Calculator/Step2_Pools"
+import Objects from "../pages/Calculator/Step3_Objects"
 
 const routes = [
     {
@@ -28,9 +31,33 @@ const routes = [
     },
     {
         path: '/calculator',
-        component: Calculator,
+        component: Entry,
         meta: {
             middlewareAuth: true,
+        }
+    },
+    {
+        path: '/calculator/upload',
+        component: Upload,
+        meta: {
+            middlewareAuth: true,
+            needSetStepCalculation: true
+        }
+    },
+    {
+        path: '/calculator/pools',
+        component: Pools,
+        meta: {
+            middlewareAuth: true,
+            needSetStepCalculation: true
+        }
+    },
+    {
+        path: '/calculator/objects',
+        component: Objects,
+        meta: {
+            middlewareAuth: true,
+            needSetStepCalculation: true
         }
     },
     {
@@ -65,6 +92,9 @@ router.beforeEach((to, from, next) => {
     // checking access to the router
     if (to.matched.some(record => record.meta.middlewareAuth) && !store.getters['isAuth']) {
         next('/signin')
+    }
+    if (to.matched.some(record => record.meta.needSetStepCalculation) && !store.state['entry_to_calculation']) {
+        next('/calculator')
     }
     else if (to.matched.some(record => !record.meta.middlewareAuth) && store.getters['isAuth']) {
         next('/')
