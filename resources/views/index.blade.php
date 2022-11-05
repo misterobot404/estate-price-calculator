@@ -14,6 +14,6 @@
 <div id="app"></div>
 
 <!-- Add the following at the end of your body tag -->
-<script src='{{ asset('js/main.js') }}'></script>
+<script src='/js/main.js'></script>
 </body>
 </html>
