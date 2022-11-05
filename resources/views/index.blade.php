@@ -8,8 +8,6 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons|Material+Icons+Outlined" rel="stylesheet" type="text/css">
     <!-- Map -->
-    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-    <!--    <script src="https://api-maps.yandex.ru/2.1/?apikey=253b2eae-b322-4893-a57c-3d63323b3558&lang=ru_RU" type="text/javascript"></script>-->
 </head>
 <body>
 <!-- Vue root -->

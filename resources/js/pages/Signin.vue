@@ -1,7 +1,7 @@
 <template>
     <div class="window-width window-height flex flex-center">
         <form @submit.prevent="send" style="min-width: 430px">
-            <q-img src="/images/logo-name.svg"/>
+            <q-img src="/images/logo-name.svg" no-spinner/>
             <q-input outlined v-model="email" label="Электронная почта" required type="email" class="q-mt-lg"/>
             <q-input outlined v-model="password" label="Пароль" type="password" required class="q-mt-sm"></q-input>
             <q-btn class="q-mt-md full-width" color="primary" label="Войти" type="submit" :loading="loading"/>

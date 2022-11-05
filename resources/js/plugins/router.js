@@ -8,7 +8,7 @@ import store from "./store"
 import Entry from "../pages/Calculator/Entry"
 import Upload from "../pages/Calculator/Step1_Upload"
 import Pools from "../pages/Calculator/Step2_Pools"
-import Objects from "../pages/Calculator/Step3_Objects"
+import Calculation from "../pages/Calculator/Step3_Calculation"
 
 const routes = [
     {
@@ -45,7 +45,7 @@ const routes = [
         }
     },
     {
-        path: '/calculator/pools',
+        path: '/calculator/pools/:id?',
         component: Pools,
         meta: {
             middlewareAuth: true,
@@ -53,8 +53,8 @@ const routes = [
         }
     },
     {
-        path: '/calculator/objects',
-        component: Objects,
+        path: '/calculator/calculation',
+        component: Calculation,
         meta: {
             middlewareAuth: true,
             needSetStepCalculation: true

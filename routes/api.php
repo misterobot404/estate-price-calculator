@@ -19,4 +19,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/parse_file_of_objects', [CalculationController::class, 'parseFileOfObjects']);
     // Calculation. Step 2
     Route::get('/pools', [CalculationController::class, 'getPools']);
+    Route::get('/pools/{id}', [CalculationController::class, 'getObjects']);
+    Route::post('/break_calculation', [CalculationController::class, 'breakCalculation']);
 });

@@ -56,6 +56,27 @@ class CalculationController extends Controller
         ]);
     }
 
+    public function getObjects($id)
+    {
+        // Объекты для этого пула
+        return response()->json([
+            "message" => null,
+            "data" => [
+                "objects" => ObjectOfPool::where('Пул', $id)->get()
+            ]
+        ]);
+    }
+
+    public function breakCalculation()
+    {
+        $group = Group::find(request('group_id'))->delete();
+
+        return response()->json([
+            "message" => null,
+            "data" => null
+        ], 204);
+    }
+
     /* Входные данные Excel.
     Ключ ячейки - значение:
     0 => Адрес

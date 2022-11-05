@@ -17,16 +17,16 @@ export default {
         })
 
         axios.get('/api/calculation_status')
-            .then((response) => {
-                if (response.data.data.calculation_status) {
-                    axios.get('/api/reference_books')
-                        .then((response) => {
-                            this.$store.commit('SET_REFERENCE_BOOKS', response.data.data);
+            .then((response_status) => {
+                axios.get('/api/reference_books')
+                    .then((response_books) => {
+                        this.$store.commit('SET_REFERENCE_BOOKS', response_books.data.data);
+                        if (response_status.data.data.calculation_status) {
                             this.$router.replace("/calculator/pools").then(() => this.$q.loading.hide());
-                        })
-                } else {
-                    this.$router.replace("/calculator/upload").then(() => this.$q.loading.hide());
-                }
+                        } else {
+                            this.$router.replace("/calculator/upload").then(() => this.$q.loading.hide());
+                        }
+                    })
             })
             .finally(() => this.$store.commit('ENTRY_TO_CALCULATION_DONE'))
     }

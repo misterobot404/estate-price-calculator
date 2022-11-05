@@ -8,7 +8,7 @@
         <q-layout class="column">
             <div class="q-px-lg q-pt-lg q-header--bordered">
                 <div class="flex items-center">
-                    <q-img src="/images/logo-name.svg" width="410px"/>
+                    <q-img src="/images/logo-name.svg" width="410px" no-spinner/>
                     <q-space/>
                     <div class="q-mr-xs">
                         <q-btn flat round>
@@ -40,8 +40,8 @@
                             <div class="row no-wrap q-pa-md">
                                 <div class="column">
                                     <div class="q-mb-xs">Настройки</div>
-                                    <q-toggle label="Тёмная тема (beta)" v-model="c_dark_mode"/>
                                     <q-toggle label="Не сохранять сессию" v-model="c_session_no_save"/>
+                                    <q-toggle label="Тёмная тема (beta)" disable v-model="c_dark_mode"/>
                                 </div>
 
                                 <q-separator vertical inset class="q-mx-lg"/>
@@ -126,14 +126,12 @@ export default {
             }
         },
         true_to_path_for_calc() {
-            switch (this.$route.path) {
-                case "/calculator/upload":
-                case "/calculator/pools":
-                case "/calculator/objects":
-                    this.last_calculation_page = this.$route.path;
-                    return this.$route.path
-                default:
-                    return this.last_calculation_page;
+            let path = this.$route.path;
+            if (path.includes("/calculator/")) {
+                this.last_calculation_page = path;
+                return path;
+            } else {
+                return this.last_calculation_page;
             }
         }
     },
@@ -150,6 +148,7 @@ export default {
 </script>
 
 <style lang="scss">
+
 @font-face {
     font-family: "Lato";
     font-weight: 400;
@@ -171,20 +170,26 @@ export default {
 body {
     font-family: 'Lato', 'Roboto', sans-serif;
     background-color: #FAFAFA;
+    max-height: 100vh;
+    overflow: hidden;
 }
 
 .text-h7 {
     font-size: 18px;
     font-weight: 500;
-    line-height: 2rem;
+    line-height: 1.85rem;
     letter-spacing: 0.0125em;
 }
 
 .text-h8 {
     font-size: 16px;
     font-weight: 500;
-    line-height: 2rem;
+    line-height: 1.7rem;
     letter-spacing: 0.0125em;
+}
+
+.text-small {
+    font-size: 14px;
 }
 
 .v-enter-active,
@@ -195,5 +200,9 @@ body {
 .v-enter-from,
 .v-leave-to {
     opacity: 0;
+}
+
+.btn-background-primary {
+    background-color: #e9f1f9
 }
 </style>
