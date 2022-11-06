@@ -4,7 +4,7 @@
             <h6 style="margin: 0%; ">История отчётов за</h6>
             <div class="q-gutter-md" style="margin: 0%; ">
                 <q-select v-model="model" :options="options" option-value="id" option-label="desc" option-disable="inactive"
-                          emit-value map-options style="max-width: 100px; max-width: 300px"/>
+                          emit-value map-options style="max-width: 100px; max-width: 300px" />
             </div>
         </div>
 
@@ -27,7 +27,7 @@
                         <q-item-section>Март</q-item-section>
                     </q-item>
 
-                    <q-separator spaced/>
+                    <q-separator spaced />
 
                     <q-item clickable v-ripple :active="link === 'April'" @click="link = 'April'"
                             active-class="my-menu-link">
@@ -42,7 +42,7 @@
                         <q-item-section>Июнь</q-item-section>
                     </q-item>
 
-                    <q-separator spaced/>
+                    <q-separator spaced />
 
                     <q-item clickable v-ripple :active="link === 'July'" @click="link = 'July'" active-class="my-menu-link">
                         <q-item-section>Июль</q-item-section>
@@ -58,7 +58,7 @@
                         <q-item-section>Сентябрь</q-item-section>
                     </q-item>
 
-                    <q-separator spaced/>
+                    <q-separator spaced />
 
                     <q-item clickable v-ripple :active="link === 'October'" @click="link = 'October'"
                             active-class="my-menu-link">
@@ -113,10 +113,10 @@
 </template>
 
 <script>
-import {ref} from 'vue'
+import { ref, VueElement } from 'vue'
+
 
 export default {
-    name: "History",
     setup() {
         return {
             model: ref(2022),
@@ -132,18 +132,18 @@ export default {
 
 <style lang="sass">
 .navigation
-    margin: 0 1% 0 1%
-    background: #FFFFFF
-    border-radius: 8px
+  margin: 0 1% 0 1%
+  background: #FFFFFF
+  border-radius: 8px
 
 
 .my-menu-link
-    color: #038DD2
-    background: #E6F6FF
-    border-radius: 8px
+  color: #038DD2
+  background: #E6F6FF
+  border-radius: 8px
 
 .report-card
-    max-height: fit-content
+  max-height: fit-content
 
 </style>
 

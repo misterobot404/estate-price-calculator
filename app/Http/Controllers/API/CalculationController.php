@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Group;
 use App\Models\ObjectOfPool;
 use App\Models\Pool;
-use App\Models\TypeOfHaveBalcon;
 use App\Models\TypeOfNumberRooms;
 use App\Models\TypeOfSegment;
 use App\Models\TypeOfWall;
@@ -67,6 +66,40 @@ class CalculationController extends Controller
         ]);
     }
 
+    public function getObjectAndAnalogs($pool_id, $object_id)
+    {
+        $object = ObjectOfPool::find($object_id)->first();
+
+        $analogs = (DB::select('SELECT * from НайтиАналоги('.$object->КоличествоКомнат.','.$object->Сегмент.','.$object->ЭтажностьДома.','.$object->МатериалСтен.','.$object->ЭтажРасположения.','.$object->ПлощадьКвартиры.','.$object->ПлощадьКухни.','.$object->НаличиеБалконаЛоджии.','.$object->МетроМин.','.$object->Состояние.')'));
+
+        // Объекты для этого пула
+        return response()->json([
+            "message" => null,
+            "data" => [
+                "object" => $object,
+                "analogs" => $analogs
+            ]
+        ]);
+    }
+
+    public function getAllCalculationObjects()
+    {
+        $objects = DB::table('ОцениваемаяНедвижимость')
+            ->leftJoin('Пул', 'ОцениваемаяНедвижимость.Пул', '=', 'Пул.id')
+            ->leftJoin('Группы', 'Группы.id', '=', 'Пул.Группа')
+            ->select('ОцениваемаяНедвижимость.*', 'Группы.Статус')
+            ->where('Статус', null)
+            ->get();
+
+        // Объекты для этого пула
+        return response()->json([
+            "message" => null,
+            "data" => [
+                "objects" => $objects
+            ]
+        ]);
+    }
+
     public function breakCalculation()
     {
         $group = Group::find(request('group_id'))->delete();
@@ -110,6 +143,7 @@ class CalculationController extends Controller
         // Параметры: id группы, id из таблицы ТипКоличестваКомнат
         $created_pools = [];
         // Перебираем все объекты недвижимости. Добавляем их в таблицу недвижимости и создаём для них пул по необходимости
+        $result_objects_db = [];
         foreach ($objects as $object) {
             // Проверяем существует ли такой пул, если пул не был создан, то создаём новый
             if (!in_array($object['1'], array_column($created_pools, "КоличествоКомнат"), true)) {
@@ -144,7 +178,7 @@ class CalculationController extends Controller
             // В таблицу "ОцениваемаяНедвижимость" добавляем данные из файла.
             // Передаём id пула, соответствующего конкретной записи, и параметры недвижимости.
             // Надо вставлять ключи из ТипКоличестваКомнат, ТипСегмента, ТипМатериалаСтен, ТипНаличияБалконаЛоджии, ТипСостояния.
-            ObjectOfPool::create([
+            $result_objects_db[] = ObjectOfPool::create([
                 'Пул' => $using_pool['id'],
                 'Местоположение' => $object['0'],
                 'КоличествоКомнат' => TypeOfNumberRooms::where('Название', $using_pool['КоличествоКомнат'])->first()->id,
@@ -166,6 +200,28 @@ class CalculationController extends Controller
         }
 
         // Формируем окончательный ответ в нужном формате
-        return response()->json(["message" => "Данные успешно загружены", "data" => null], 204);
+        // Необходимо вернуть список созданных объектов для дальнейшего обогащения
+        return response()->json([
+            "message" => "Данные успешно загружены. Необходимо добавить координаты",
+            "data" => [
+                "objects" => $result_objects_db
+            ]
+        ]);
+    }
+
+    public function updateObjectCoords()
+    {
+        $objects = request('objects');
+        // Устанавливаем поле КоличествоОбъектов для пулов
+        foreach ($objects as $el) {
+            $object = ObjectOfPool::find($el["id"]);
+            $object->coordx = $el["coordy"];
+            $object->coordy = $el["coordx"];
+            $object->save();
+        }
+
+        // Формируем окончательный ответ в нужном формате
+        // Необходимо вернуть список созданных объектов для дальнейшего обогащения
+        return response()->json([], 204);
     }
 }

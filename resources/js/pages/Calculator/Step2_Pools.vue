@@ -1,16 +1,57 @@
 <template>
-    <div class="relative-position">
+    <div class="one-display relative-position">
         <YandexMap
+            v-if="page === 'pools' || page === 'objects'"
             :coordinates="[55.75, 37.57]"
-            zoom="11"
-            :controls="['typeSelector', 'trafficControl']"
+            :zoom="11"
+            :detailed-controls="map_detailed_controls"
+            :controls="map_controls"
         >
-            <template v-if="objects">
+            <YandexClusterer v-if="objects">
                 <YandexMarker v-for="object in objects" :coordinates="[object.coordx, object.coordy]" :marker-id="object.id"/>
+            </YandexClusterer>
+        </YandexMap>
+        <YandexMap
+            v-else-if="page === 'object'"
+            :coordinates="[55.75, 37.57]"
+            :zoom="11"
+            :detailed-controls="map_detailed_controls"
+            :controls="map_controls"
+        >
+            <template v-if="analogs && selected_object">
+                <YandexMarker :coordinates="[selected_object.coordx, selected_object.coordy]" :options="{'preset': 'islands#redDotIcon'}" marker-id="1000000"/>
+
+                <YandexMarker
+                    v-for="analog in analogs"
+                    :ref="'analog_'+analog.id"
+                    :coordinates="[analog.coordx, analog.coordy]"
+                    :options="{'preset':  'islands#blackIcon'}"
+                    :marker-id="analog.id"
+                >
+                    <template #component>
+                        <div>
+                            <div class="flex justify-center">
+                                <q-img src="/images/object-icon.svg" width="60px" no-spinner/>
+                            </div>
+                            <div class="q-mt-sm">
+                                <div class="text-bold text-center q-mb-sm">{{ analog.Стоимость }} ₽</div>
+                                <div v-text="analog.Местоположение"/>
+                                <div>Состояние: {{ analog.Состояние.toLowerCase() }}</div>
+                                <div>Площадь квартиры: {{ analog.ПлощадьКвартиры }} кв. м.</div>
+                                <div>Количество комнат: {{ analog.КоличествоКомнат }}</div>
+                                <div>Этаж расположения: {{ analog.ЭтажРасположения }} этаж</div>
+                                <div class="flex justify-center">
+                                    <q-btn @click.="selectAnalog(analog.id)" class="q-mt-md" style="width: 200px" label="Выбрать аналог" size="sm" no-caps color="primary"/>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </YandexMarker>
             </template>
         </YandexMap>
+
         <div class="absolute-top-left q-pa-lg map__view-block custom-y-scroll">
-            <q-card style="width: 320px; border-radius: .4rem">
+            <q-card style="min-width: 340px; border-radius: .4rem">
                 <q-card-section>
                     <template v-if="page === 'pools'">
                         <div class="flex">
@@ -22,24 +63,25 @@
                                 </q-tooltip>
                             </q-btn>
                         </div>
-                        <q-separator class="q-mt-sm"/>
+                        <q-separator class="q-mt-sm q-mb-lg"/>
                         <template v-if="data_loading">
-                            <div class="flex justify-center items-center" style="height: 200px;">
+                            <div class="flex justify-center items-center" style="height: 180px; padding-bottom: 16px">
                                 <q-spinner-grid color="primary" size="2em"/>
                             </div>
                         </template>
                         <template v-else>
-                            <div v-for="pool in pools" class="q-my-md flex">
+                            <div v-for="(pool, index) in pools" class="q-my-md flex">
                                 <div>
                                     <q-img src="/images/pool-icon.svg" width="40px" no-spinner/>
                                 </div>
-                                <div class="q-ml-md">
+                                <div class="q-ml-md col-grow">
                                     <div class="text-negative">Не расчитано</div>
                                     <div class="text-h8" v-text="getNameOfRoomsById(pool.КоличествоКомнат)"/>
                                     <div class="text-small">
                                         Количество квартир: {{ pool.КоличествоОбъектов }}
                                     </div>
                                     <q-btn flat color="primary" label="Перейти к расчёту" no-caps class="q-mt-sm btn-background-primary" size="md" :to="'/calculator/pools/' + pool.id"/>
+                                    <q-separator class="q-mt-md" v-show="pools.length - 1 !== index"/>
                                 </div>
                             </div>
                         </template>
@@ -49,90 +91,281 @@
                             <q-btn flat round icon="arrow_back" size="sm" class="text-grey-8" to="/calculator/pools"/>
                             <div class="q-ml-xs text-h8">Вернуться к категориям</div>
                         </div>
-                        <q-separator class="q-mt-sm"/>
+                        <q-separator class="q-mt-sm q-mb-lg"/>
                         <template v-if="data_loading">
-                            <div class="flex justify-center items-center" style="height: 200px;">
-                                <q-spinner-grid color="primary" size="3em"/>
+                            <div class="flex justify-center items-center" style="height: 180px; padding-bottom: 16px">
+                                <q-spinner-grid color="primary" size="2em"/>
                             </div>
                         </template>
                         <template v-else>
-                            <div v-for="object in objects" class="q-my-md flex">
+                            <div v-for="(object, index) in objects" class="q-my-md flex">
                                 <div>
                                     <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
                                 </div>
-                                <div class="q-ml-md">
+                                <div class="q-ml-md col-grow">
                                     <div class="text-bold" v-text="object.Местоположение"/>
-                                    <div class="">
-                                        Сегмент: {{ object.Сегмент }}
+                                    <div class="">Состояние: {{ $store.getters.nameOfConditionById(object.Состояние).toLowerCase() }}</div>
+                                    <div class="">Площадь квартиры: {{ object.ПлощадьКвартиры }} кв. м.</div>
+                                    <div class="">Количество комнат: {{ object.КоличествоКомнат }}</div>
+                                    <div class="">Этаж расположения: {{ object.ЭтажРасположения }} этаж</div>
+                                    <div>
+                                        <q-icon name="more_horiz" @click="extended_el_id === object.id ? extended_el_id = null : extended_el_id = object.id" class="cursor-pointer text-grey-8"/>
                                     </div>
-                                    <div class="">
-                                        Материал стен: {{ object.МатериалСтен }}
-                                    </div>
-                                    <div class="">
-                                        Этаж расположения: {{ object.ЭтажРасположения }}
-                                    </div>
-                                    <div class="">
-                                        Этажность дома: {{ object.ЭтажностьДома }}
-                                    </div>
-                                    <q-btn flat color="primary" label="Выбрать эталоном" no-caps class="q-mt-sm btn-background-primary" size="md"/>
+                                    <q-slide-transition>
+                                        <div v-show="extended_el_id === object.id">
+                                            <div class="">Этажность дома: {{ object.ЭтажностьДома }}</div>
+                                            <div class="">Площадь кухни: {{ object.ПлощадьКухни }} кв. м.</div>
+                                            <div class="">Сегмент: {{ $store.getters.nameOfSegmentById(object.Сегмент).toLowerCase() }}</div>
+                                            <div class="">Материал стен: {{ $store.getters.nameOfWallById(object.МатериалСтен).toLowerCase() }}</div>
+                                            <div class="">Наличие балкона/лоджии: {{ object.НаличиеБалконаЛоджии ? "да" : "нет" }}</div>
+                                            <div class="">Время до метро (пешком): {{ object.МетроМин }} мин.</div>
+                                        </div>
+                                    </q-slide-transition>
+                                    <q-btn flat color="primary" label="Выбрать эталоном" no-caps class="q-mt-sm btn-background-primary" size="md" :to="'/calculator/pools/' + object.Пул + '/' + object.id"/>
+                                    <q-separator class="q-mt-md" v-show="objects.length - 1 !== index"/>
                                 </div>
+                            </div>
+                        </template>
+                    </template>
+                    <template v-else-if="page === 'object'">
+                        <div class="flex items-center">
+                            <q-btn flat round icon="arrow_back" size="sm" class="text-grey-8" :to="'/calculator/pools/'+$route.params.pool_id"/>
+                            <div class="q-ml-xs text-h8">Эталонная квартира</div>
+                        </div>
+                        <q-separator class="q-mt-sm q-mb-lg"/>
+                        <template v-if="data_loading">
+                            <div class="flex justify-center items-center" style="height: 180px; padding-bottom: 16px">
+                                <q-spinner-grid color="primary" size="2em"/>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="q-my-md flex">
+                                <div>
+                                    <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
+                                </div>
+                                <div class="q-ml-md col-grow">
+                                    <div class="text-bold" v-text="selected_object.Местоположение"/>
+                                    <div class="">Состояние: {{ $store.getters.nameOfConditionById(selected_object.Состояние).toLowerCase() }}</div>
+                                    <div class="">Площадь квартиры: {{ selected_object.ПлощадьКвартиры }} кв. м.</div>
+                                    <div class="">Количество комнат: {{ $store.getters.nameOfNumberRoomsById(selected_object.КоличествоКомнат) }}</div>
+                                    <div class="">Этаж расположения: {{ selected_object.ЭтажРасположения }} этаж</div>
+                                    <div>
+                                        <q-icon name="more_horiz" @click="extended_el_id === selected_object.id ? extended_el_id = null : extended_el_id = selected_object.id" class="cursor-pointer text-grey-8"/>
+                                    </div>
+                                    <q-slide-transition>
+                                        <div v-show="extended_el_id === selected_object.id">
+                                            <div class="">Этажность дома: {{ selected_object.ЭтажностьДома }}</div>
+                                            <div class="">Площадь кухни: {{ selected_object.ПлощадьКухни }} кв. м.</div>
+                                            <div class="">Сегмент: {{ $store.getters.nameOfSegmentById(selected_object.Сегмент).toLowerCase() }}</div>
+                                            <div class="">Материал стен: {{ $store.getters.nameOfWallById(selected_object.МатериалСтен).toLowerCase() }}</div>
+                                            <div class="">Наличие балкона/лоджии: {{ selected_object.НаличиеБалконаЛоджии ? "да" : "нет" }}</div>
+                                            <div class="">Время до метро (пешком): {{ selected_object.МетроМин }} мин.</div>
+                                        </div>
+                                    </q-slide-transition>
+                                    <template v-show="false">
+                                        <q-btn flat color="primary" label="Выбрать эталоном" no-caps class="q-mt-sm btn-background-primary" size="md"
+                                               :to="'/calculator/pools/' + selected_object.Пул + '/' + selected_object.id"/>
+                                    </template>
+                                </div>
+                            </div>
+                            <div>
+                                <q-btn color="primary" icon="calculate" class="full-width" outline label="Рассчитать" no-caps @click="calculationSetup()"/>
                             </div>
                         </template>
                     </template>
                 </q-card-section>
             </q-card>
+
+            <template v-if="page === 'object'">
+                <q-card style="min-width: 340px; border-radius: .4rem" class="q-mt-sm" v-if="selected_analogs?.length">
+                    <q-card-section>
+                        <div class="text-h8">Выбранные аналоги ({{ selected_analogs.length }}/5)</div>
+                        <div class="q-my-md">
+                            <div v-for="(selected_analog, index) in selected_analogs" class="q-my-md flex">
+                                <div>
+                                    <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
+                                </div>
+                                <div class="q-ml-md col-grow">
+                                    <div class="text-bold">{{ selected_analog.Стоимость }} ₽</div>
+                                    <div v-text="selected_analog.Местоположение"/>
+                                    <div>Состояние: {{ selected_analog.Состояние.toLowerCase() }}</div>
+                                    <div>Площадь квартиры: {{ selected_analog.ПлощадьКвартиры }} кв. м.</div>
+                                    <div>Количество комнат: {{ selected_analog.КоличествоКомнат }}</div>
+                                    <div>Этаж расположения: {{ selected_analog.ЭтажРасположения }} этаж</div>
+                                    <div>
+                                        <q-icon name="more_horiz" @click="extended_el_id === selected_analog.id ? extended_el_id = null : extended_el_id = selected_analog.id" class="cursor-pointer text-grey-8"/>
+                                    </div>
+                                    <q-slide-transition>
+                                        <div v-show="extended_el_id === selected_analog.id">
+                                            <div>Этажность дома: {{ selected_analog.ЭтажностьДома }}</div>
+                                            <div>Площадь кухни: {{ selected_analog.ПлощадьКухни }} кв. м.</div>
+                                            <div>Сегмент: {{ selected_analog.Сегмент.toLowerCase() }}</div>
+                                            <div>Материал стен: {{ selected_analog.МатериалСтен.toLowerCase() }}</div>
+                                            <div>Наличие балкона/лоджии: {{ selected_analog.НаличиеБалконаЛоджии ? "да" : "нет" }}</div>
+                                            <div>Время до метро (пешком): {{ selected_analog.МетроМин }} мин.</div>
+                                        </div>
+                                    </q-slide-transition>
+                                    <q-btn flat color="primary" label="Отменить выбор" no-caps class="q-mt-sm btn-background-primary" size="md" @click="removeSelectAnalog(selected_analog.id)"/>
+                                    <q-separator class="q-mt-md" v-show="selected_analogs.length - 1 !== index"/>
+                                </div>
+                            </div>
+                        </div>
+                    </q-card-section>
+                </q-card>
+                <q-card style="min-width: 340px; border-radius: .4rem" class="q-mt-sm">
+                    <q-card-section>
+                        <div class="text-h8">Подобрано</div>
+                        <template v-if="data_loading">
+                            <div class="flex justify-center items-center" style="height: 180px; padding-bottom: 16px">
+                                <q-spinner-grid color="primary" size="2em"/>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div v-for="(analog, index) in analogs">
+                                <div class="flex q-my-md" v-if="!selected_analogs.find(el => el.id === analog.id)">
+                                    <div>
+                                        <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
+                                    </div>
+                                    <div class="q-ml-md col-grow">
+                                        <div class="text-bold">
+                                            {{ analog.Стоимость }} ₽
+                                        </div>
+                                        <div v-text="analog.Местоположение"/>
+                                        <div>Состояние: {{ analog.Состояние.toLowerCase() }}</div>
+                                        <div>Площадь квартиры: {{ analog.ПлощадьКвартиры }} кв. м.</div>
+                                        <div>Количество комнат: {{ analog.КоличествоКомнат }}</div>
+                                        <div>Этаж расположения: {{ analog.ЭтажРасположения }} этаж</div>
+                                        <div>
+                                            <q-icon name="more_horiz" @click="extended_el_id === analog.id ? extended_el_id = null : extended_el_id = analog.id" class="cursor-pointer text-grey-8"/>
+                                        </div>
+                                        <q-slide-transition>
+                                            <div v-show="extended_el_id === analog.id">
+                                                <div>Этажность дома: {{ analog.ЭтажностьДома }}</div>
+                                                <div>Площадь кухни: {{ analog.ПлощадьКухни }} кв. м.</div>
+                                                <div>Сегмент: {{ analog.Сегмент.toLowerCase() }}</div>
+                                                <div>Материал стен: {{ analog.МатериалСтен.toLowerCase() }}</div>
+                                                <div>Наличие балкона/лоджии: {{ analog.НаличиеБалконаЛоджии ? "да" : "нет" }}</div>
+                                                <div>Время до метро (пешком): {{ analog.МетроМин }} мин.</div>
+                                            </div>
+                                        </q-slide-transition>
+                                        <q-btn flat color="primary" label="Выбрать аналог" no-caps class="q-mt-sm btn-background-primary" size="md"
+                                               @click="selectAnalog(analog.id)"/>
+                                        <q-separator class="q-mt-md" v-show="analogs.length - 1 !== index"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </q-card-section>
+                </q-card>
+            </template>
         </div>
     </div>
 </template>
 
 <script>
 import axios from "axios";
-import { YandexMap, YandexMarker, loadYmap  } from 'vue-yandex-maps'
+import {YandexMap, YandexMarker, YandexClusterer, loadYmap} from 'vue-yandex-maps'
 
 export default {
-    components: {
-        YandexMap,
-        YandexMarker,
-
-    },
+    components: {YandexMap, YandexMarker, YandexClusterer},
     data() {
         return {
+            map_controls: ['typeSelector', 'trafficControl', 'fullscreenControl'],
+            map_detailed_controls: {zoomControl: {position: {right: 10, top: 50}}},
+
             data_loading: true,
+            extended_el_id: null,
             clear_pools_process: false,
 
-            myMap: null,
             pools: null,
             objects: null,
+
+            selected_object: [],
+            analogs: null,
+            selected_analogs: [],
+
+            last_selected_marker: null,
         }
     },
     methods: {
         loadData() {
-            let page = this.$route.params.id ? "objects" : "pools";
             this.data_loading = true;
+            this.pools = null;
             this.objects = null;
+            this.selected_object = [];
+            this.analogs = null;
+            this.selected_analogs = [];
 
-            // Если текущая страница - objects, то загружаем все пулы
-            if (page === 'pools') {
+            // Если текущая страница - pools/pool_id/object_id
+            if (this.$route.params.object_id) {
+                axios.get('/api/pools/' + this.$route.params.pool_id + '/' + this.$route.params.object_id)
+                    .then((response) => {
+                        this.selected_object = response.data.data.object;
 
+                        let distance_res = [];
+                        this.analogs = [];
+                        let max_distance = 0;
+
+                        response.data.data.analogs.forEach(el => {
+                            distance_res.push(ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]))
+                        })
+
+                        // Определяем, какое минимальное расстояние нам нужно взять для расчётов
+                        if (distance_res.filter(el => el <= 1000).length > 2) {
+                            max_distance = 1000;
+                        } else if (distance_res.filter(el => el <= 1500).length > 2) {
+                            max_distance = 1500;
+                        } else if (distance_res.filter(el => el <= 3000).length > 2) {
+                            max_distance = 3000;
+                        } else (distance_res.filter(el => el <= 5000).length > 2)
+                        {
+                            max_distance = 5000;
+                        }
+
+                        let local_id = 0;
+                        response.data.data.analogs.forEach(el => {
+                            let dist = ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]);
+
+                            if (dist < max_distance) {
+                                el.id = --local_id;
+                                this.analogs.push(el);
+                            }
+                        })
+
+                        if (max_distance === 3000 || max_distance === 5000) {
+                            this.$q.notify({
+                                message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
+                                icon: 'announcement'
+                            })
+                        }
+
+                        this.data_loading = false;
+                    })
+            }
+            // Если текущая страница - pools/pool_id
+            else if (this.$route.params.pool_id) {
+                // Загружаем ещё объекты недвижимости для выбранного пула
+                axios.get('/api/pools/' + this.$route.params.pool_id)
+                    .then((response) => {
+                        this.objects = response.data.data.objects;
+                        this.data_loading = false;
+                    })
+            }
+            // Если текущая страница - pools
+            else {
+                // Загружаем все пулы для текущей расчитываемой группы
                 axios.get('/api/pools')
                     .then((response) => {
                         this.pools = response.data.data.pools;
                         this.data_loading = false;
                     })
-            }
-            // Если текущая страница - objects, то загружаем ещё объекты недвижимости для выбранного пула
-            else if (page === 'objects') {
-                axios.get('/api/pools/' + this.$route.params.id)
-                    .then((response) => {
-                        this.objects = response.data.data.objects;
-                        this.data_loading = false;
-
-                        this.showObjectsOnMap();
-                    })
+                // Загружаем ещё объекты недвижимости для отображения на карте
+                axios.get('/api/all_calculation_objects')
+                    .then((response) => this.objects = response.data.data.objects)
             }
         },
-        getNameOfRoomsById(room_id) {
-            let name = this.$store.getters.nameOfNumberRoomsById(room_id);
+        getNameOfRoomsById(id) {
+            let name = this.$store.getters.nameOfNumberRoomsById(id);
 
             switch (name) {
                 case "1":
@@ -165,59 +398,83 @@ export default {
                 .then(() => this.$router.push("/calculator/upload"))
                 .finally(() => this.clear_pools_process = false)
         },
+        selectAnalog(id) {
+            if (this.selected_analogs.find(el => el.id === id)) {
+                this.$q.notify({message: 'Аналог уже используется', icon: 'announcement'})
+            } else if (this.selected_analogs.length >= 5) {
+                this.$q.notify({message: 'Достигнуто максимальное количество выбранных аналогов', icon: 'announcement'})
+            } else {
+                this.$refs['analog_'+id][0].options.set({'preset': 'islands#redIcon'});
+
+                this.selected_analogs.push(this.analogs.find(el => el.id === id));
+            }
+        },
+        removeSelectAnalog(id) {
+            let index = this.selected_analogs.findIndex(el => el.id === id);
+
+            this.$refs['analog_'+id][0].options.set({'preset': 'islands#blackIcon'});
+            this.selected_analogs.splice(index, 1);
+        },
+        calculationSetup() {
+            if (this.selected_analogs.length < 3 || this.selected_analogs.length > 5) {
+                this.$q.notify({message: 'Для корректности расчётов выберите от 3 до 5 аналогов', icon: 'announcement'})
+            } else {
+
+            }
+        },
     },
     computed: {
         page() {
             this.loadData();
-            return this.$route.params.id ? "objects" : "pools"
+
+            if (this.$route.params.object_id) {
+                return "object"
+            } else if (this.$route.params.pool_id) {
+                return "objects"
+            } else {
+                return "pools"
+            }
         },
     },
     beforeMount() {
         this.loadData();
-    },
 
-    async mounted() {
         const settings = {
             apiKey: '253b2eae-b322-4893-a57c-3d63323b3558', // Индивидуальный ключ API
             lang: 'ru_RU', // Используемый язык
             coordorder: 'latlong', // Порядок задания географических координат
-            debug: true, // Режим отладки
+            debug: false, // Режим отладки
             version: '2.1' // Версия Я.Карт
         }
 
-        await loadYmap(settings);
-
-        ymaps.geocode('Нижний Новгород', {results: 1}).then(function (res) {
-            // Выбираем первый результат геокодирования.
-            var firstGeoObject = res.geoObjects.get(0),
-                // Координаты геообъекта.
-                coords = firstGeoObject.geometry.getCoordinates(),
-                // Область видимости геообъекта.
-                bounds = firstGeoObject.properties.get('boundedBy');
-
-            firstGeoObject.options.set('preset', 'islands#darkBlueDotIconWithCaption');
-            // Получаем строку с адресом и выводим в иконке геообъекта.
-            firstGeoObject.properties.set('iconCaption', firstGeoObject.getAddressLine());
-
-            console.log('Все данные геообъекта: ', firstGeoObject.properties.getAll());
-        });
-    }
+        loadYmap({settings});
+    },
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scopes>
 .yandex-container {
     width: 100vw;
     height: calc(100vh - 138px);
 }
 
+.yandex-balloon {
+    min-height: 250px;
+    width: 220px;
+}
+
 .map__view-block {
     max-height: calc(100vh - 138px);
     overflow-y: scroll;
+    scroll-behavior: smooth;
 }
 
 .custom-y-scroll::-webkit-scrollbar {
     width: 16px;
 }
 
+.one-display {
+    max-height: 100vh;
+    overflow: hidden;
+}
 </style>

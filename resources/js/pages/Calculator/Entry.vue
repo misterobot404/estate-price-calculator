@@ -12,7 +12,7 @@ export default {
         this.$q.loading.show({
             spinner: QSpinnerFacebook,
             spinnerSize: 120,
-            backgroundColor: 'grey-5',
+            backgroundColor: 'grey-4',
             spinnerColor: 'primary'
         })
 
@@ -22,7 +22,11 @@ export default {
                     .then((response_books) => {
                         this.$store.commit('SET_REFERENCE_BOOKS', response_books.data.data);
                         if (response_status.data.data.calculation_status) {
-                            this.$router.replace("/calculator/pools").then(() => this.$q.loading.hide());
+                            if (this.$route.query.redirect) {
+                                this.$router.replace(this.$route.query.redirect).then(() => this.$q.loading.hide());
+                            } else {
+                                this.$router.replace("/calculator/pools").then(() => this.$q.loading.hide());
+                            }
                         } else {
                             this.$router.replace("/calculator/upload").then(() => this.$q.loading.hide());
                         }

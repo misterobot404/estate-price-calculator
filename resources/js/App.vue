@@ -14,17 +14,17 @@
                         <q-btn flat round>
                             <q-icon name="apps" class="text-grey-8"/>
                         </q-btn>
-                        <q-menu class="q-px-lg q-py-md" style="min-width: 330px">
-                            <div>Сторонние калькуляторы</div>
+                        <q-menu class="q-px-lg q-py-md" style="min-width: 330px; border-radius: .4rem">
+                            <div>Калькуляторы расчёта цены квартиры:</div>
                             <q-separator class="q-my-sm"/>
-                            <div>
-                                <q-btn flat href="https://www.avito.ru/evaluation/realty/" target="_blank">
+                            <div class="flex">
+                                <q-btn flat href="https://www.avito.ru/evaluation/realty/" target="_blank" size="lg">
                                     <img src="/images/Avito.svg" alt="Avito" width="64"/>
                                 </q-btn>
-                                <q-btn flat href="https://www.cian.ru/kalkulator-nedvizhimosti/" target="_blank">
+                                <q-btn flat href="https://www.cian.ru/kalkulator-nedvizhimosti/" target="_blank" size="lg">
                                     <img src="/images/Cian.svg" alt="Cian" width="64"/>
                                 </q-btn>
-                                <q-btn flat href="https://realty.ya.ru/calculator-stoimosti" target="_blank">
+                                <q-btn flat href="https://realty.ya.ru/calculator-stoimosti" target="_blank" size="lg">
                                     <img src="/images/Yandex.png" alt="Yandex" width="60"/>
                                 </q-btn>
                             </div>
@@ -36,10 +36,10 @@
                                 <img src="/images/user-avatar-icon.png" alt="Иконка аватара"/>
                             </q-avatar>
                         </q-btn>
-                        <q-menu>
+                        <q-menu style="border-radius: .4rem">
                             <div class="row no-wrap q-pa-md">
                                 <div class="column">
-                                    <div class="q-mb-xs">Настройки</div>
+                                    <div class="q-mb-sm">Настройки</div>
                                     <q-toggle label="Не сохранять сессию" v-model="c_session_no_save"/>
                                     <q-toggle label="Тёмная тема (beta)" disable v-model="c_dark_mode"/>
                                 </div>
@@ -75,11 +75,6 @@
                 </q-tabs>
             </div>
             <router-view/>
-            <!--            <router-view v-slot="{ Component }">
-                           <keep-alive>
-                               <component :is="Component"/>
-                           </keep-alive>
-                       </router-view>-->
         </q-layout>
     </template>
 </template>
@@ -170,8 +165,6 @@ export default {
 body {
     font-family: 'Lato', 'Roboto', sans-serif;
     background-color: #FAFAFA;
-    max-height: 100vh;
-    overflow: hidden;
 }
 
 .text-h7 {

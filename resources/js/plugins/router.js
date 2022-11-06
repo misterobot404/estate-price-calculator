@@ -45,7 +45,15 @@ const routes = [
         }
     },
     {
-        path: '/calculator/pools/:id?',
+        path: '/calculator/pools/:pool_id?',
+        component: Pools,
+        meta: {
+            middlewareAuth: true,
+            needSetStepCalculation: true
+        }
+    },
+    {
+        path: '/calculator/pools/:pool_id/:object_id',
         component: Pools,
         meta: {
             middlewareAuth: true,
@@ -94,7 +102,12 @@ router.beforeEach((to, from, next) => {
         next('/signin')
     }
     if (to.matched.some(record => record.meta.needSetStepCalculation) && !store.state['entry_to_calculation']) {
-        next('/calculator')
+        if (to.fullPath !== '/calculator/upload') {
+            next({path: '/calculator', query: {redirect: to.fullPath}});
+        }
+        else {
+            next('/calculator');
+        }
     }
     else if (to.matched.some(record => !record.meta.middlewareAuth) && store.getters['isAuth']) {
         next('/')
