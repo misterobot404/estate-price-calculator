@@ -290,7 +290,7 @@ export default {
 
 
         calc(object, analogs, settings) {
-            return calc_func.findEtalonPrice(object, analogs, settings.map(el => JSON.parse(el.Данные)));
+            return calc_func.findEtalonPrice(object, analogs, settings);
         },
 
         loadData() {
