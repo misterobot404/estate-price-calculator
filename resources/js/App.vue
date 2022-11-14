@@ -32,7 +32,7 @@
                     </div>
                     <div>
                         <q-btn round flat>
-                            <q-avatar size="28px">
+                            <q-avatar size="32px">
                                 <img src="/images/user-avatar-icon.png" alt="Иконка аватара"/>
                             </q-avatar>
                         </q-btn>
@@ -51,7 +51,7 @@
                                         <img src="/images/user-avatar.png" alt="Аватар пользователя">
                                     </q-avatar>
 
-                                    <div class="text-subtitle1 q-mt-xs q-mb-sm" v-text="user.name"/>
+                                    <div class="q-mt-xs q-mb-sm text-no-wrap" v-text="user.name"/>
 
                                     <q-btn
                                         color="primary"

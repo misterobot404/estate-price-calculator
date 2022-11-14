@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalculationController;
+use App\Http\Controllers\API\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/signup', [AuthController::class, 'signup']);
@@ -15,6 +16,10 @@ Route::middleware('auth:api')->group(function () {
     // Entry calculation
     Route::get('/calculation_status', [CalculationController::class, 'getCalculationStatus']);
     Route::get('/reference_books', [CalculationController::class, 'getReferenceBooks']);
+    // Settings
+    Route::get('/settings/{year}', [SettingController::class, 'getSettings']);
+    Route::post('/settings', [SettingController::class, 'saveSettings']);
+
     // Calculation. Step 1
     Route::post('/parse_file_of_objects', [CalculationController::class, 'parseFileOfObjects']);
     Route::post('/update_object_coords', [CalculationController::class, 'updateObjectCoords']);
@@ -24,4 +29,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/pools/{pool_id}/{object_id}', [CalculationController::class, 'getObjectAndAnalogs']);
     Route::get('/all_calculation_objects', [CalculationController::class, 'getAllCalculationObjects']);
     Route::post('/break_calculation', [CalculationController::class, 'breakCalculation']);
+    Route::post('/completed_calc_pool', [CalculationController::class, 'completedCalculationPool']);
+    // Calculation. Step 3
+    Route::post('/setup_operation', [CalculationController::class, 'setupOperation']);
+    Route::get('/get_operation/{operation_id}', [CalculationController::class, 'getOperation']);
+    Route::post('/save_operations', [CalculationController::class, 'saveOperations']);
+
+    // History
+    Route::get('/history', [CalculationController::class, 'getHistory']);
 });

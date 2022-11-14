@@ -75,7 +75,7 @@
                                     <q-img src="/images/pool-icon.svg" width="40px" no-spinner/>
                                 </div>
                                 <div class="q-ml-md col-grow">
-                                    <div class="text-negative">Не расчитано</div>
+                                    <div class="text-negative">{{pool.status}}</div>
                                     <div class="text-h8" v-text="getNameOfRoomsById(pool.КоличествоКомнат)"/>
                                     <div class="text-small">
                                         Количество квартир: {{ pool.КоличествоОбъектов }}
@@ -103,10 +103,13 @@
                                     <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
                                 </div>
                                 <div class="q-ml-md col-grow">
+                                    <div v-if="objects_price" class="text-h8 text-primary">
+                                        {{ Math.floor(objects_price[index].Стоимость * object.ПлощадьКвартиры) }} ₽
+                                    </div>
                                     <div class="text-bold" v-text="object.Местоположение"/>
                                     <div class="">Состояние: {{ $store.getters.nameOfConditionById(object.Состояние).toLowerCase() }}</div>
                                     <div class="">Площадь квартиры: {{ object.ПлощадьКвартиры }} кв. м.</div>
-                                    <div class="">Количество комнат: {{ object.КоличествоКомнат }}</div>
+                                    <div class="">Количество комнат: {{ $store.getters.nameOfNumberRoomsById(object.КоличествоКомнат) }}</div>
                                     <div class="">Этаж расположения: {{ object.ЭтажРасположения }} этаж</div>
                                     <div>
                                         <q-icon name="more_horiz" @click="extended_el_id === object.id ? extended_el_id = null : extended_el_id = object.id" class="cursor-pointer text-grey-8"/>
@@ -124,6 +127,10 @@
                                     <q-btn flat color="primary" label="Выбрать эталоном" no-caps class="q-mt-sm btn-background-primary" size="md" :to="'/calculator/pools/' + object.Пул + '/' + object.id"/>
                                     <q-separator class="q-mt-md" v-show="objects.length - 1 !== index"/>
                                 </div>
+                            </div>
+                            <div v-if="objects_price">
+                                <q-separator class="q-my-md"/>
+                                <q-btn color="primary" class="full-width" @click="endCalc()">Завершить расчёт пула</q-btn>
                             </div>
                         </template>
                     </template>
@@ -280,6 +287,9 @@ export default {
             pools: null,
             objects: null,
 
+            // Данный параметр возвращается тогда, когда статус пула - 3 (расчитан, но не подтверждён)
+            objects_price: null,
+
             selected_object: [],
             analogs: null,
             selected_analogs: [],
@@ -295,6 +305,7 @@ export default {
             this.selected_object = [];
             this.analogs = null;
             this.selected_analogs = [];
+            this.objects_price = null;
 
             // Если текущая страница - pools/pool_id/object_id
             if (this.$route.params.object_id) {
@@ -311,16 +322,13 @@ export default {
                         })
 
                         // Определяем, какое минимальное расстояние нам нужно взять для расчётов
-                        if (distance_res.filter(el => el <= 1000).length > 2) {
+                        if (distance_res.filter(el => el <= 1000).length >= 3) {
                             max_distance = 1000;
-                        } else if (distance_res.filter(el => el <= 1500).length > 2) {
+                        } else if (distance_res.filter(el => el <= 1500).length >= 3) {
                             max_distance = 1500;
-                        } else if (distance_res.filter(el => el <= 3000).length > 2) {
+                        } else if (distance_res.filter(el => el <= 3000).length >= 3) {
                             max_distance = 3000;
-                        } else (distance_res.filter(el => el <= 5000).length > 2)
-                        {
-                            max_distance = 5000;
-                        }
+                        } else max_distance = 5000;
 
                         let local_id = 0;
                         response.data.data.analogs.forEach(el => {
@@ -349,6 +357,8 @@ export default {
                     .then((response) => {
                         this.objects = response.data.data.objects;
                         this.data_loading = false;
+
+                        this.objects_price = response.data.data.objects_price;
                     })
             }
             // Если текущая страница - pools
@@ -394,7 +404,7 @@ export default {
         },
         breakCalculation() {
             this.clear_pools_process = true;
-            axios.post('/api/break_calculation', {group_id: this.pools[0].Группа})
+            axios.post('/api/break_calculation')
                 .then(() => this.$router.push("/calculator/upload"))
                 .finally(() => this.clear_pools_process = false)
         },
@@ -404,7 +414,7 @@ export default {
             } else if (this.selected_analogs.length >= 5) {
                 this.$q.notify({message: 'Достигнуто максимальное количество выбранных аналогов', icon: 'announcement'})
             } else {
-                this.$refs['analog_'+id][0].options.set({'preset': 'islands#redIcon'});
+                this.$refs['analog_' + id][0].options.set({'preset': 'islands#redIcon'});
 
                 this.selected_analogs.push(this.analogs.find(el => el.id === id));
             }
@@ -412,16 +422,25 @@ export default {
         removeSelectAnalog(id) {
             let index = this.selected_analogs.findIndex(el => el.id === id);
 
-            this.$refs['analog_'+id][0].options.set({'preset': 'islands#blackIcon'});
+            this.$refs['analog_' + id][0].options.set({'preset': 'islands#blackIcon'});
             this.selected_analogs.splice(index, 1);
         },
         calculationSetup() {
             if (this.selected_analogs.length < 3 || this.selected_analogs.length > 5) {
                 this.$q.notify({message: 'Для корректности расчётов выберите от 3 до 5 аналогов', icon: 'announcement'})
             } else {
-
+                axios.post('/api/setup_operation', {
+                    pool_id: this.$route.params.pool_id,
+                    object_id: this.selected_object.id,
+                    analogs: this.selected_analogs,
+                })
+                    .then((response) => this.$router.push("/calculator/operation/" + response.data.data.operation.id))
             }
         },
+        endCalc() {
+            axios.post('/api/completed_calc_pool', {pool_id: this.$route.params.pool_id,})
+                .then((response) => this.$router.push("/calculator"))
+        }
     },
     computed: {
         page() {

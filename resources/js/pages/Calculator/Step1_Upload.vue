@@ -70,6 +70,8 @@ export default {
 
                 })
                 .catch(() => {
+                    axios.post('/api/break_calculation');
+
                     this.$q.notify({
                         message: "Ошибка разбора данных. Сравните структуру загружаемого файла с примером.",
                         icon: 'error_outline',

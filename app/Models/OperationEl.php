@@ -5,16 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pool extends Model
+class OperationEl extends Model
 {
     use HasFactory;
 
     public $timestamps = false;
-    protected $table = 'Пул';
+    protected $table = 'Операция_ОцениваемаяНедвижимость';
 
-    protected $fillable = [
-        'Группа',
-        'КоличествоКомнат',
-        'user_id'
-    ];
+    protected $guarded = [];
 }

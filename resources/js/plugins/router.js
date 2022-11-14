@@ -61,7 +61,7 @@ const routes = [
         }
     },
     {
-        path: '/calculator/calculation',
+        path: '/calculator/operation/:operation_id',
         component: Calculation,
         meta: {
             middlewareAuth: true,
@@ -99,7 +99,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     // checking access to the router
     if (to.matched.some(record => record.meta.middlewareAuth) && !store.getters['isAuth']) {
-        next('/signin')
+        next('/signin');
     }
     if (to.matched.some(record => record.meta.needSetStepCalculation) && !store.state['entry_to_calculation']) {
         if (to.fullPath !== '/calculator/upload') {

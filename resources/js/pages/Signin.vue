@@ -38,6 +38,9 @@ export default {
                 }))
                 .finally(() => this.loading = false)
         }
+    },
+    mounted() {
+        this.$q.loading.hide();
     }
 }
 </script>
