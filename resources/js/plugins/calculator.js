@@ -238,17 +238,23 @@ let findMinMaxPriceDiff = (analogArr) => {
 }
 
 //осуществляет расчет весовой характеристики объектов аналогов
-let findWeight = (analogArr) => {
+let findWeight = (analogArr) =>{
 
     //По формуле из их примера
     //Ищем делитель
     let del = 0;
     for (let i = 0; i < analogArr.length; i++) {
-        del += 1 / analogArr[i].cCalculation.cSize;
+        if(analogArr[i].cCalculation.cSize!=0)
+            del += 1 / analogArr[i].cCalculation.cSize;
+        else del+=1;
     }
+    if(del === 0)
+        del = 1;
     //Выполняем поочередное деление размера примененных корректирововк на рассчитаный выше делитель
     for (let i = 0; i < analogArr.length; i++) {
-        analogArr[i].cCalculation.cWeight = (1 / analogArr[i].cCalculation.cSize) / del;
+        if(analogArr[i].cCalculation.cSize!=0)
+            analogArr[i].cCalculation.cWeight = (1 / analogArr[i].cCalculation.cSize) / del;
+        else analogArr[i].cCalculation.cWeight =1/del;
     }
 }
 
