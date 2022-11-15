@@ -395,7 +395,6 @@ export default {
 
             //Добавляем эталонный объект в начало
             let row = this.object;
-            console.log(this.analogs);
             row[0] = 'Эталон';
             row.Состояние = store.getters.nameOfConditionById(row.Состояние).toLowerCase();
             row.Сегмент = store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();

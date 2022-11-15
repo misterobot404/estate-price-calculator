@@ -147,7 +147,7 @@ let checkTax = (analogArr, average) => {
         let diffTmp = ((analogArr[i].priceM - average) / average);
         //Сравниваем разницу с значением в 20%
         if (Math.abs(diffTmp) > diff) {
-            alert("Стоимость аналога " + (i + 1) + " отличается от рыночной на " + (diffTmp * 100) + "%. Будет начислен налог!");
+            alert("Стоимость аналога " + (i + 1) + " отличается от рыночной на " + (Math.round(diffTmp * 100)) + "%. Будет начислен налог!");
         }
         //Вывод разницы для 1 аналога
         analogArr[i].cCalculation.cTax = diffTmp;
