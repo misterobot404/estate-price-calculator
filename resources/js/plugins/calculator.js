@@ -15,10 +15,11 @@ class CoefficientsTable {
     // e =>  если задана строка или число в 1 экзкмпляре [3, "Учереждение" и т.п.]
     // c => когда столбец и строка равны 1 и не имеют условий Пример => Кофиициэнт на торг
 
-    constructor(table, tableType, rowcolNames = null, pharamName = null,) {
+    constructor(table, tableName, tableType, rowcolNames = null, pharamName = null,) {
         this.table = table;
         this.pharamName = pharamName;
         this.tableType = tableType;
+        this.tableName = tableName;
 
 
         if (rowcolNames === null) {
@@ -313,10 +314,10 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     })
 
     //Преобразование таблиц из json
-    let cTables = JSON.parse(JSONTables);
+    let cNames = tables.map(el => el.Название);
+    let cTables = tables.map(el => JSON.parse(el.Данные));
     for(let i=0;i<cTables.length; i++){
-        cTables[i]=cTables[i]['Данные'];
-        cTables[i] = new CoefficientsTable(cTables[i].table,cTables[i]['Название'], cTables[i].isPercent, cTables[i].rowcolNames,cTables[i].pharamName);
+        cTables[i] = new CoefficientsTable(cTables[i].table,cNames[i], cTables[i].isPercent, cTables[i].rowcolNames,cTables[i].pharamName);
     }
 
     //Приведение к типу этажа используемому при оценке

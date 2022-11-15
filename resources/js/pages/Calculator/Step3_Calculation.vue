@@ -26,9 +26,10 @@
         </q-card>
 
         <div class="text-bold text-h8 q-mb-sm q-mt-lg">Объекты сравнения</div>
+
         <q-table
-            :rows="analogs"
-            :columns="columns_comparation_analogs"
+            :rows="extend_objects_table.rows"
+            :columns="extend_objects_table.columns"
             row-key="name"
             :rows-per-page-options="[]"
         >
@@ -83,6 +84,7 @@
 import axios from "axios";
 import {QSpinnerFacebook, exportFile, useQuasar} from "quasar";
 import * as calc_func from '../../plugins/calculator'
+import store from "../../plugins/store";
 
 export default {
     data() {
@@ -97,6 +99,20 @@ export default {
                     label: 'Местоположение',
                     align: 'left',
                     field: row => row.Местоположение,
+                },
+                {
+                    name: 'ПлощадьКвартиры',
+                    required: true,
+                    label: 'Площадь Квартиры',
+                    align: 'left',
+                    field: row => row.ПлощадьКвартиры,
+                },
+                {
+                    name: 'ПлощадьКухни',
+                    required: true,
+                    label: 'Площадь Кухни',
+                    align: 'left',
+                    field: row => row.ПлощадьКухни,
                 },
                 {
                     name: 'КоличествоКомнат',
@@ -373,6 +389,44 @@ export default {
         }
     },
     computed: {
+        extend_objects_table() {
+            let columns = [];
+            let rows = [];
+
+            //Добавляем эталонный объект в начало
+            let row = this.object;
+            console.log(this.analogs);
+            row[0] = 'Эталон';
+            row.Состояние = store.getters.nameOfConditionById(row.Состояние).toLowerCase();
+            row.Сегмент = store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
+            row.МатериалСтен = store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
+            row.Стоимость = this.res_calc.price;
+            rows.push(row);
+
+            // Формируем строки
+            this.analogs.forEach((meta_table, index) => {
+                let row = meta_table;
+                row[0] = 'Аналог ' + (index +1);
+                rows.push(row)
+            });
+
+            columns.push({
+                name: 'ЭлементСравнения',
+                label: 'Элемент сравнения',
+                align: 'left',
+                field: row => row[0],
+            })
+
+            // Заголовки столбцов
+            this.columns_comparation_analogs.forEach((el) => {
+                columns.push(el);
+            })
+
+            return {
+                columns: columns,
+                rows: rows
+            }
+        },
         extend_coef_table() {
             let columns = [];
             let rows = [];
