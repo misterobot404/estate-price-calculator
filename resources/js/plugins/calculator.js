@@ -1,6 +1,7 @@
 //Структура для хранения таблиц коэффициентов
 class CoefficientsTable {
 
+    tableName;
     //Название строк и столбцов
     rowcolNames;
     //таблица значений
@@ -237,17 +238,23 @@ let findMinMaxPriceDiff = (analogArr) => {
 }
 
 //осуществляет расчет весовой характеристики объектов аналогов
-let findWeight = (analogArr) => {
+let findWeight = (analogArr) =>{
 
     //По формуле из их примера
     //Ищем делитель
     let del = 0;
     for (let i = 0; i < analogArr.length; i++) {
-        del += 1 / analogArr[i].cCalculation.cSize;
+        if(analogArr[i].cCalculation.cSize!=0)
+            del += 1 / analogArr[i].cCalculation.cSize;
+        else del+=1;
     }
+    if(del === 0)
+        del = 1;
     //Выполняем поочередное деление размера примененных корректирововк на рассчитаный выше делитель
     for (let i = 0; i < analogArr.length; i++) {
-        analogArr[i].cCalculation.cWeight = (1 / analogArr[i].cCalculation.cSize) / del;
+        if(analogArr[i].cCalculation.cSize!=0)
+            analogArr[i].cCalculation.cWeight = (1 / analogArr[i].cCalculation.cSize) / del;
+        else analogArr[i].cCalculation.cWeight =1/del;
     }
 }
 
@@ -306,9 +313,10 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     })
 
     //Преобразование таблиц из json
-    let cTables = tables;
-    for (let i = 0; i < cTables.length; i++) {
-        cTables[i] = new CoefficientsTable(cTables[i].table, cTables[i].isPercent, cTables[i].rowcolNames, cTables[i].pharamName);
+    let cTables = JSON.parse(JSONTables);
+    for(let i=0;i<cTables.length; i++){
+        cTables[i]=cTables[i]['Данные'];
+        cTables[i] = new CoefficientsTable(cTables[i].table,cTables[i]['Название'], cTables[i].isPercent, cTables[i].rowcolNames,cTables[i].pharamName);
     }
 
     //Приведение к типу этажа используемому при оценке
@@ -348,10 +356,9 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     };
 
     // analog_changes_table
-    let str = ['Корректировка на торг','Корректировка на этаж расположения квартиры', 'Корректировка на площадь квартиры','Корректировка на площадь кухни','Корректировка на наличие балкона/лоджии', 'Корректировка на состояние отделки','Корректировка на расстояние до метро'];
     for (let i = 0; i < cTables.length; i++) {
         res.analog_changes_table.push({
-            name: str[i],
+            name: cTables[i].tableName,
             values: class_analog_arr.map(el => (el.cCalculation.appliedC[i].cValue * 100).toFixed(2) + '% (' + Math.floor(el.cCalculation.appliedC[i].cPrice) + ' ₽)')
         })
     }
