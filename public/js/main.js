@@ -20398,7 +20398,7 @@ var _hoisted_1 = {
   "class": "q-pa-lg"
 };
 var _hoisted_2 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-  "class": "text-bold text-h8"
+  "class": "text-bold text-h7"
 }, "Настройки оценки:", -1 /* HOISTED */);
 var _hoisted_3 = {
   "class": "flex q-mt-md"
@@ -20454,7 +20454,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       rows: table.Данные.rows,
       columns: table.Данные.columns,
       "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(table.Данные.rowcolNames === null ? 'color-first-row' : 'color-first-row color-first-col'),
-      "rows-per-page-options": 0,
+      "rows-per-page-options": [0],
       "hide-bottom": ""
     }, {
       body: (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function (props) {
@@ -21004,6 +21004,7 @@ var findEtalonPrice = function findEtalonPrice(reference, analogArr, tables) {
 
   //Преобразование таблиц из json
   var cTables = tables;
+  console.log(tables);
   for (var i = 0; i < cTables.length; i++) {
     cTables[i] = new CoefficientsTable(cTables[i].table, cTables[i].isPercent, cTables[i].rowcolNames, cTables[i].pharamName);
   }

@@ -1,6 +1,6 @@
 <template>
     <div class="q-pa-lg">
-        <div class="text-bold text-h8">Настройки оценки:</div>
+        <div class="text-bold text-h7">Настройки оценки:</div>
         <div class="flex q-mt-md">
             <q-select dense v-model="selected_year" :options="years" filled class="q-mr-md"/>
             <q-select dense v-model="selected_tables_name" :options="['Все справочники', ...tables.map(el => el.Название)]" filled/>
@@ -13,7 +13,7 @@
                     :rows="table.Данные.rows"
                     :columns="table.Данные.columns"
                     :class="table.Данные.rowcolNames === null ? 'color-first-row' : 'color-first-row color-first-col'"
-                    :rows-per-page-options="0"
+                    :rows-per-page-options="[0]"
                     hide-bottom
                 >
                     <template v-slot:body="props">

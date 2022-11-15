@@ -14,7 +14,7 @@ class CoefficientsTable {
     // e =>  если задана строка или число в 1 экзкмпляре [3, "Учереждение" и т.п.]
     // c => когда столбец и строка равны 1 и не имеют условий Пример => Кофиициэнт на торг
 
-    constructor(table, tableType, rowcolNames = null, pharamName = null,) {
+    constructor(table, tableType, rowcolNames = null, pharamName = null) {
         this.table = table;
         this.pharamName = pharamName;
         this.tableType = tableType;
@@ -284,7 +284,6 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     Reference.price = 0;
     Reference.priceM = 0;
 
-
     let class_analog_arr = [];
     // Преобразуем входные объекты в классы
     analogArr.forEach((el) => {
@@ -307,6 +306,7 @@ let findEtalonPrice = (reference, analogArr, tables) => {
 
     //Преобразование таблиц из json
     let cTables = tables;
+    console.log(tables);
     for (let i = 0; i < cTables.length; i++) {
         cTables[i] = new CoefficientsTable(cTables[i].table, cTables[i].isPercent, cTables[i].rowcolNames, cTables[i].pharamName);
     }
