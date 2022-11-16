@@ -18074,7 +18074,7 @@ __webpack_require__.r(__webpack_exports__);
           } else {
             _this.map.then(function () {
               _this.analogs.every(function (el, index) {
-                if (index > 5) {
+                if (index > 4) {
                   return false;
                 }
                 _this.selectAnalog(_this.analogs[index].id);
@@ -18312,7 +18312,12 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
     return {
       object: null,
       analogs: [],
+      // Все настройки
+      base_settings: [],
+      // Настройки (кор-ки), которые применяются в данный момент
       settings: [],
+      // Итоговая таблицы с кор-ми на вывод пользователю
+      coef_table: null,
       columns_comparation_analogs: [{
         name: 'Местоположение',
         required: true,
@@ -18437,12 +18442,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
           return row.Стоимость_м;
         }
       }],
-      coef_table: null,
       is_done: false,
       res_calc: null,
       analog_objects_of_pool: null,
       result_for_mass_reveal: null,
-      settingsAfterDisabled: []
+      notifications: []
     };
   },
   methods: {
@@ -18553,10 +18557,34 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var status = (0,quasar__WEBPACK_IMPORTED_MODULE_1__.exportFile)('Выгрузка_по_расчёту.csv', '\n' + "ufeff" + content1 + '\n\n\n\n' + content2 + '\n\n\n\n' + content3, 'text/csv');
     },
     calc: function calc(object, analogs, settings) {
-      return _plugins_calculator__WEBPACK_IMPORTED_MODULE_2__.findEtalonPrice(object, analogs, settings);
+      var _this3 = this;
+      var result = _plugins_calculator__WEBPACK_IMPORTED_MODULE_2__.findEtalonPrice(object, analogs, settings);
+      var path = "/calculator/pools/" + object.Пул + "/" + object.id;
+      this.notifications = [];
+      if (result.errors.length !== 0) {
+        result.errors.forEach(function (error, index) {
+          _this3.notifications.push(_this3.$q.notify({
+            message: error.text,
+            icon: 'warning',
+            color: 'primary',
+            timeout: 0,
+            actions: [{
+              label: 'Вернуться к выбору аналогов',
+              color: 'white',
+              to: path,
+              handler: function handler() {}
+            }, {
+              label: 'Ингнорировать',
+              color: 'white',
+              handler: function handler() {}
+            }]
+          }));
+        });
+      }
+      return result;
     },
     loadData: function loadData() {
-      var _this3 = this;
+      var _this4 = this;
       this.$q.loading.show({
         spinner: quasar__WEBPACK_IMPORTED_MODULE_1__.QSpinnerFacebook,
         spinnerSize: 120,
@@ -18564,22 +18592,25 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         spinnerColor: 'primary'
       });
       axios__WEBPACK_IMPORTED_MODULE_0__["default"].get('/api/get_operation/' + this.$route.params.operation_id).then(function (response) {
-        _this3.object = response.data.data.object;
-        _this3.analogs = JSON.parse(response.data.data.operation.Аналоги);
-        _this3.settings = response.data.data.settings;
-        _this3.settingsAfterDisabled = _toConsumableArray(_this3.settings);
-        _this3.res_calc = _this3.calc(_this3.object, _this3.analogs, _this3.settingsAfterDisabled);
-        _this3.coef_table = _this3.setCoefTable();
-        _this3.is_done = true;
-        _this3.$q.loading.hide();
+        _this4.object = response.data.data.object;
+        _this4.analogs = JSON.parse(response.data.data.operation.Аналоги);
+        _this4.settings = response.data.data.settings;
+        _this4.base_settings = _toConsumableArray(_this4.settings);
+
+        // Расчитываем
+        _this4.res_calc = _this4.calc(_this4.object, _this4.analogs, _this4.settings);
+        // Обновляем итоговую таблицу с кор-ми на вывод пользователю
+        _this4.coef_table = _this4.setCoefTable();
+        _this4.is_done = true;
+        _this4.$q.loading.hide();
       });
     },
     disableCoof: function disableCoof(coof_name) {
-      var el_index = this.settingsAfterDisabled.findIndex(function (setting) {
+      var el_index = this.settings.findIndex(function (setting) {
         return setting.Название === coof_name;
       });
-      this.settingsAfterDisabled.splice(el_index, 1);
-      this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
+      this.settings.splice(el_index, 1);
+      this.res_calc = this.calc(this.object, this.analogs, this.settings);
       this.coef_table = null;
       this.coef_table = this.setCoefTable();
       this.$q.notify({
@@ -18588,11 +18619,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       });
     },
     enableCoof: function enableCoof(coof_name) {
-      var el = this.settings.find(function (setting) {
+      var el = this.base_settings.find(function (setting) {
         return setting.Название === coof_name;
       });
-      this.settingsAfterDisabled.push(el);
-      this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
+      this.settings.push(el);
+      this.res_calc = this.calc(this.object, this.analogs, this.settings);
       this.coef_table = null;
       this.coef_table = this.setCoefTable();
       this.$q.notify({
@@ -18600,20 +18631,35 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         icon: 'announcement'
       });
     },
+    // Формируем результирующую для вывода пользователю таблицу с кор-ми коэф-ми
     setCoefTable: function setCoefTable() {
-      var _this4 = this;
+      var _this5 = this;
       var columns = [];
       var rows = [];
 
-      // Формируем строки
-      this.res_calc.analog_changes_table.forEach(function (analog_changes) {
-        var row = {
-          0: analog_changes.name
-        };
-        _this4.analogs.forEach(function (el, index) {
-          row[index + 1] = analog_changes.values[index];
+      // Формируем вывод на основе base_settings
+      this.base_settings.forEach(function (base_setting, index) {
+        // Проверяем использовалась ли настройка в расчётах
+        var used_setting = _this5.res_calc.analog_changes_table.find(function (setting) {
+          return setting.name === base_setting.Название;
         });
-        rows.push(row);
+        if (used_setting) {
+          var row = {
+            0: used_setting.name
+          };
+          _this5.analogs.forEach(function (el, index) {
+            row[index + 1] = used_setting.values[index];
+          });
+          rows.push(row);
+        } else {
+          var _row = {
+            0: base_setting.Название
+          };
+          _this5.analogs.forEach(function (el, index) {
+            _row[index + 1] = "-";
+          });
+          rows.push(_row);
+        }
       });
       columns.push({
         name: 'Название',
@@ -18652,11 +18698,11 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       var rows = [];
 
       //Добавляем эталонный объект в начало
-      var row = JSON.parse(JSON.stringify(this.object));
+      var row = Object.assign({}, this.object);
       row[0] = 'Эталон';
-      row.Состояние = this.$store.getters.nameOfConditionById(row.Состояние).toLowerCase();
-      row.Сегмент = this.$store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
-      row.МатериалСтен = this.$store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
+      row.Состояние = _plugins_store__WEBPACK_IMPORTED_MODULE_3__["default"].getters.nameOfConditionById(this.object.Состояние).toLowerCase();
+      row.Сегмент = _plugins_store__WEBPACK_IMPORTED_MODULE_3__["default"].getters.nameOfSegmentById(this.object.Сегмент).toLowerCase();
+      row.МатериалСтен = _plugins_store__WEBPACK_IMPORTED_MODULE_3__["default"].getters.nameOfWallById(this.object.МатериалСтен).toLowerCase();
       row.Стоимость = this.res_calc.price;
       row.Стоимость_м = this.res_calc.price_m;
       rows.push(row);
@@ -18687,7 +18733,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
       };
     },
     extend_coef_table: function extend_coef_table() {
-      var _this5 = this;
+      var _this6 = this;
       var columns = [];
       var rows = [];
 
@@ -18696,7 +18742,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
         var row = {
           0: meta_table.name
         };
-        _this5.analogs.forEach(function (el, index) {
+        _this6.analogs.forEach(function (el, index) {
           row[index + 1] = meta_table.values[index];
         });
         rows.push(row);
@@ -18728,6 +18774,12 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
   },
   beforeMount: function beforeMount() {
     this.loadData();
+  },
+  beforeRouteLeave: function beforeRouteLeave() {
+    this.notifications.forEach(function (notify) {
+      notify();
+    });
+    this.notifications = [];
   }
 });
 
@@ -20165,11 +20217,11 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         props: props
       }, {
         "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
-          return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [$data.settingsAfterDisabled.find(function (el) {
-            var _$data$settings$find;
-            return el.id === ((_$data$settings$find = $data.settings.find(function (setting) {
+          return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [$data.settings.find(function (el) {
+            var _$data$base_settings$;
+            return el.id === ((_$data$base_settings$ = $data.base_settings.find(function (setting) {
               return setting.Название === props.row[0];
-            })) === null || _$data$settings$find === void 0 ? void 0 : _$data$settings$find.id);
+            })) === null || _$data$base_settings$ === void 0 ? void 0 : _$data$base_settings$.id);
           }) ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_q_btn, {
             key: 0,
             flat: "",
@@ -21140,6 +21192,7 @@ var Apartment = /*#__PURE__*/_createClass(function Apartment() {
   _defineProperty(this, "cCalculation", new AppliedCoefficients());
 }); //Проверка на наличие налога (20%)
 var checkTax = function checkTax(analogArr, average) {
+  var errors = [];
   //Разница не более чем в 20 процентов
   var diff = 0.2;
   for (var i = 0; i < analogArr.length; i++) {
@@ -21147,11 +21200,14 @@ var checkTax = function checkTax(analogArr, average) {
     var diffTmp = (analogArr[i].priceM - average) / average;
     //Сравниваем разницу с значением в 20%
     if (Math.abs(diffTmp) > diff) {
-      alert("Стоимость аналога " + (i + 1) + " отличается от рыночной на " + Math.round(diffTmp * 100) + "%. Будет начислен налог!");
+      errors.push({
+        text: "Отклонение в цене " + (i + 1) + " аналога отличается от среднего значения выборки на " + Math.round(diffTmp * 100) + "%. Налоговый орган в праве доначислить налог (НК РФ ст. 146-ФЗ)."
+      });
     }
     //Вывод разницы для 1 аналога
     analogArr[i].cCalculation.cTax = diffTmp;
   }
+  return errors;
 };
 
 //Поиск ср значения цены выборки
@@ -21179,12 +21235,12 @@ var checkReliability = function checkReliability(analogArr, average) {
   var standardDeviation = Math.sqrt(findDispersionSum(analogArr, average) / analogArr.length - 1);
   //Поиск коэффициэнта вариации
   var res = standardDeviation / average;
-  console.log("Достоверность и достаточность подобранных аналогов состовляет: " + res * 100);
   if (res > diff) {
-    alert("Подобраны не достоверные аналоги!");
-    return false;
+    return {
+      text: "Коэффициент вариации больше 33%. Выборка недостаточна."
+    };
   }
-  return true;
+  return false;
 };
 
 //Оценка аналога по коэффициэнтам
@@ -21329,10 +21385,6 @@ var findEtalonPrice = function findEtalonPrice(reference, analogArr, tables) {
   //среднее значение цены выборки
   var average = getAverageValue(class_analog_arr);
 
-  ///ИЗ ДОП ЛИТЕРАТУРЫ
-  //Проверка на наличие налога (20%)
-  checkTax(class_analog_arr, average);
-
   // Результат функции. Тело
   var res = {
     analog_changes_table: [],
@@ -21340,8 +21392,13 @@ var findEtalonPrice = function findEtalonPrice(reference, analogArr, tables) {
     coef_diff: null,
     price_m: null,
     price: null,
-    price_diff: null
+    price_diff: null,
+    errors: []
   };
+
+  ///ИЗ ДОП ЛИТЕРАТУРЫ
+  //Проверка на наличие налога (20%)
+  res.errors = checkTax(class_analog_arr, average);
 
   // analog_changes_table
   var _loop = function _loop(_i4) {
@@ -21377,11 +21434,10 @@ var findEtalonPrice = function findEtalonPrice(reference, analogArr, tables) {
   res.price_diff = class_analog_arr.map(function (el) {
     return (el.cCalculation.cTax * 100).toFixed(2);
   });
-
-  //TODO тут еще 1 проверка не потеряйте!!!!
-  ///ИЗ ДОП ЛИТЕРАТУРЫ
-  //Проверка подобранных аналогов на достоверность (33%)
-  checkReliability(class_analog_arr, average);
+  var reability = checkReliability(class_analog_arr, average);
+  if (reability) {
+    res.errors.push(reability);
+  }
   return res;
 };
 

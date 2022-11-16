@@ -54,7 +54,7 @@
                     <q-td :props="props">
                         <div>
                             <q-btn
-                                v-if="settingsAfterDisabled.find(el => el.id === settings.find(setting => setting.Название === props.row[0])?.id)"
+                                v-if="settings.find(el => el.id === base_settings.find(setting => setting.Название === props.row[0])?.id)"
                                 flat
                                 round
                                 icon="check_box"
@@ -97,7 +97,13 @@ export default {
         return {
             object: null,
             analogs: [],
+            // Все настройки
+            base_settings: [],
+            // Настройки (кор-ки), которые применяются в данный момент
             settings: [],
+            // Итоговая таблицы с кор-ми на вывод пользователю
+            coef_table: null,
+
             columns_comparation_analogs: [
                 {
                     name: 'Местоположение',
@@ -198,15 +204,14 @@ export default {
                     field: row => row.Стоимость_м,
                 },
             ],
-            coef_table: null,
 
             is_done: false,
             res_calc: null,
 
             analog_objects_of_pool: null,
-            result_for_mass_reveal: null,
 
-            settingsAfterDisabled: []
+            result_for_mass_reveal: null,
+            notifications: [],
         }
     },
     methods: {
@@ -337,7 +342,24 @@ export default {
         },
 
         calc(object, analogs, settings) {
-            return calc_func.findEtalonPrice(object, analogs, settings);
+            let result = calc_func.findEtalonPrice(object, analogs, settings);
+            let path = "/calculator/pools/"+(object.Пул)+"/"+(object.id);
+            this.notifications = [];
+            if(result.errors.length !== 0) {
+                result.errors.forEach((error, index) => {
+                    this.notifications.push(this.$q.notify({
+                        message: error.text,
+                        icon: 'warning',
+                        color: 'primary',
+                        timeout: 0,
+                        actions: [
+                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{}},
+                            {label: 'Ингнорировать', color: 'white', handler: () => {}},
+                        ]
+                    }));
+                })
+            }
+            return result;
         },
 
         loadData() {
@@ -353,9 +375,11 @@ export default {
                     this.object = response.data.data.object;
                     this.analogs = JSON.parse(response.data.data.operation.Аналоги);
                     this.settings = response.data.data.settings;
-                    this.settingsAfterDisabled = [...this.settings];
+                    this.base_settings = [...this.settings];
 
-                    this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
+                    // Расчитываем
+                    this.res_calc = this.calc(this.object, this.analogs, this.settings);
+                    // Обновляем итоговую таблицу с кор-ми на вывод пользователю
                     this.coef_table = this.setCoefTable();
 
                     this.is_done = true;
@@ -364,10 +388,10 @@ export default {
         },
 
         disableCoof(coof_name) {
-            let el_index = this.settingsAfterDisabled.findIndex(setting => setting.Название === coof_name);
-            this.settingsAfterDisabled.splice(el_index, 1);
+            let el_index = this.settings.findIndex(setting => setting.Название === coof_name);
+            this.settings.splice(el_index, 1);
 
-            this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
+            this.res_calc = this.calc(this.object, this.analogs, this.settings);
 
             this.coef_table = null;
             this.coef_table = this.setCoefTable();
@@ -379,11 +403,11 @@ export default {
         },
 
         enableCoof(coof_name) {
-            let el = this.settings.find(setting => setting.Название === coof_name);
+            let el = this.base_settings.find(setting => setting.Название === coof_name);
 
-            this.settingsAfterDisabled.push(el);
+            this.settings.push(el);
 
-            this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
+            this.res_calc = this.calc(this.object, this.analogs, this.settings);
 
             this.coef_table = null;
             this.coef_table = this.setCoefTable();
@@ -394,20 +418,34 @@ export default {
             })
         },
 
+        // Формируем результирующую для вывода пользователю таблицу с кор-ми коэф-ми
         setCoefTable() {
             let columns = [];
             let rows = [];
 
-            // Формируем строки
-            this.res_calc.analog_changes_table.forEach((analog_changes) => {
-                let row = {
-                    0: analog_changes.name,
-                };
-                this.analogs.forEach((el, index) => {
-                    row[index + 1] = analog_changes.values[index];
-                })
-                rows.push(row)
-            });
+            // Формируем вывод на основе base_settings
+            this.base_settings.forEach((base_setting, index) => {
+                // Проверяем использовалась ли настройка в расчётах
+                let used_setting = this.res_calc.analog_changes_table.find(setting => setting.name === base_setting.Название);
+                if (used_setting) {
+                    let row = {
+                        0: used_setting.name,
+                    };
+                    this.analogs.forEach((el, index) => {
+                        row[index + 1] = used_setting.values[index];
+                    })
+                    rows.push(row)
+                }
+                else {
+                    let row = {
+                        0: base_setting.Название,
+                    };
+                    this.analogs.forEach((el, index) => {
+                        row[index + 1] = "-";
+                    })
+                    rows.push(row);
+                }
+            })
 
             columns.push({
                 name: 'Название',
@@ -443,11 +481,11 @@ export default {
             let rows = [];
 
             //Добавляем эталонный объект в начало
-            let row = JSON.parse(JSON.stringify(this.object));
+            let row = Object.assign({},this.object);
             row[0] = 'Эталон';
-            row.Состояние = this.$store.getters.nameOfConditionById(row.Состояние).toLowerCase();
-            row.Сегмент = this.$store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
-            row.МатериалСтен = this.$store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
+            row.Состояние = store.getters.nameOfConditionById(this.object.Состояние).toLowerCase();
+            row.Сегмент = store.getters.nameOfSegmentById(this.object.Сегмент).toLowerCase();
+            row.МатериалСтен = store.getters.nameOfWallById(this.object.МатериалСтен).toLowerCase();
             row.Стоимость = this.res_calc.price;
             row.Стоимость_м = this.res_calc.price_m;
             rows.push(row);
@@ -516,6 +554,12 @@ export default {
     },
     beforeMount() {
         this.loadData();
+    },
+    beforeRouteLeave(){
+        this.notifications.forEach((notify) =>{
+            notify();
+        });
+        this.notifications = [];
     }
 }
 </script>

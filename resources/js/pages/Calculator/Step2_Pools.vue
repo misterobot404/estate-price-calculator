@@ -425,7 +425,7 @@ export default {
                         } else {
                             this.map.then(() => {
                                 this.analogs.every((el, index) => {
-                                    if (index > 5) {
+                                    if (index > 4) {
                                         return false;
                                     }
                                     this.selectAnalog(this.analogs[index].id);

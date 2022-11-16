@@ -140,6 +140,7 @@ class Apartment {
 
 //Проверка на наличие налога (20%)
 let checkTax = (analogArr, average) => {
+    let errors = [];
     //Разница не более чем в 20 процентов
     const diff = 0.2;
     for (let i = 0; i < analogArr.length; i++) {
@@ -147,11 +148,12 @@ let checkTax = (analogArr, average) => {
         let diffTmp = ((analogArr[i].priceM - average) / average);
         //Сравниваем разницу с значением в 20%
         if (Math.abs(diffTmp) > diff) {
-            alert("Стоимость аналога " + (i + 1) + " отличается от рыночной на " + (Math.round(diffTmp * 100)) + "%. Будет начислен налог!");
+            errors.push({text:"Отклонение в цене " + (i + 1) + " аналога отличается от среднего значения выборки на " + (Math.round(diffTmp * 100)) + "%. Налоговый орган в праве доначислить налог (НК РФ ст. 146-ФЗ)."});
         }
         //Вывод разницы для 1 аналога
         analogArr[i].cCalculation.cTax = diffTmp;
     }
+    return errors;
 }
 
 //Поиск ср значения цены выборки
@@ -179,12 +181,11 @@ let checkReliability = (analogArr, average) => {
     let standardDeviation = Math.sqrt((findDispersionSum(analogArr, average) / analogArr.length - 1));
     //Поиск коэффициэнта вариации
     let res = standardDeviation / average;
-    console.log("Достоверность и достаточность подобранных аналогов состовляет: " + res * 100);
+
     if (res > diff) {
-        alert("Подобраны не достоверные аналоги!");
-        return false;
+        return {text:"Коэффициент вариации больше 33%. Выборка недостаточна." };
     }
-    return true;
+    return false;
 }
 
 //Оценка аналога по коэффициэнтам
@@ -245,7 +246,7 @@ let findWeight = (analogArr) =>{
     //Ищем делитель
     let del = 0;
     for (let i = 0; i < analogArr.length; i++) {
-        if(analogArr[i].cCalculation.cSize!=0)
+        if(analogArr[i].cCalculation.cSize != 0)
             del += 1 / analogArr[i].cCalculation.cSize;
         else del+=1;
     }
@@ -253,7 +254,7 @@ let findWeight = (analogArr) =>{
         del = 1;
     //Выполняем поочередное деление размера примененных корректирововк на рассчитаный выше делитель
     for (let i = 0; i < analogArr.length; i++) {
-        if(analogArr[i].cCalculation.cSize!=0)
+        if(analogArr[i].cCalculation.cSize != 0)
             analogArr[i].cCalculation.cWeight = (1 / analogArr[i].cCalculation.cSize) / del;
         else analogArr[i].cCalculation.cWeight =1/del;
     }
@@ -342,10 +343,6 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     //среднее значение цены выборки
     const average = getAverageValue(class_analog_arr);
 
-    ///ИЗ ДОП ЛИТЕРАТУРЫ
-    //Проверка на наличие налога (20%)
-    checkTax(class_analog_arr, average);
-
     // Результат функции. Тело
     let res = {
         analog_changes_table: [],
@@ -354,7 +351,12 @@ let findEtalonPrice = (reference, analogArr, tables) => {
         price_m: null,
         price: null,
         price_diff: null,
+        errors: [],
     };
+
+    ///ИЗ ДОП ЛИТЕРАТУРЫ
+    //Проверка на наличие налога (20%)
+    res.errors = checkTax(class_analog_arr, average);
 
     // analog_changes_table
     for (let i = 0; i < cTables.length; i++) {
@@ -383,11 +385,10 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     // price_diff
     res.price_diff = class_analog_arr.map(el => (el.cCalculation.cTax * 100).toFixed(2))
 
-    //TODO тут еще 1 проверка не потеряйте!!!!
-    ///ИЗ ДОП ЛИТЕРАТУРЫ
-    //Проверка подобранных аналогов на достоверность (33%)
-    checkReliability(class_analog_arr, average);
-
+    let reability = checkReliability(class_analog_arr, average);
+    if(reability){
+        res.errors.push(reability);
+    }
     return res;
 }
 
