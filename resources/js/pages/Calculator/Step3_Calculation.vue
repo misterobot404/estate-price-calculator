@@ -320,7 +320,28 @@ export default {
         },
 
         calc(object, analogs, settings) {
-            return calc_func.findEtalonPrice(object, analogs, settings);
+            let result = calc_func.findEtalonPrice(object, analogs, settings);
+            let path = "/calculator/pools/"+(object.Пул)+"/"+(object.id);
+            let notifications = [];
+            if(result.errors.length != 0) {
+                result.errors.forEach(error => {
+                   notifications.push(this.$q.notify({
+                        message: error.text,
+                        icon: 'announcement',
+                        position: "top",
+                        color: 'primary',
+                        timeout: 0,
+                        actions: [
+                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{notifications.forEach(notify =>{
+                                notify();
+                                })}},
+                            {label: 'Ингнорировать', color: 'white', handler: () => {notifications.forEach(notify =>{
+                                    notify();})}},
+                        ]
+                    }));
+                })
+            }
+            return result;
         },
 
         loadData() {
