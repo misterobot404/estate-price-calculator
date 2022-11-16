@@ -1,10 +1,10 @@
 <template>
     <div v-if="is_done" class="q-pa-lg">
         <div class="flex items-center">
-            <q-btn flat round icon="arrow_back" size="sm" class="text-grey-8" :to="'/calculator/pools/'+object.Пул+'/'+object.id"/>
+            <q-btn flat round icon="arrow_back" size="sm" class="text-grey-8"
+                   :to="'/calculator/pools/'+object.Пул+'/'+object.id"/>
             <div class="q-ml-xs">Вернуться к карте</div>
         </div>
-
         <div style="margin: 16px 34px">
             <div class="text-bold text-h8 q-mb-sm">Итоговый расчёт стоимости эталона</div>
             <q-card>
@@ -12,20 +12,24 @@
                     <div class="flex">
                         <div class="q-mr-lg">
                             <div>
-                                <span class="text-bold">Рыночная стоимость:</span> {{ res_calc.price_m.toLocaleString('ru') }} ₽
+                                <span class="text-bold">Рыночная стоимость:</span>
+                                {{ res_calc.price_m.toLocaleString('ru') }} ₽
                             </div>
                             <div class="text-caption">За кв.м. (с НДС)</div>
                         </div>
                         <div>
                             <div>
-                                <span class="text-bold">Рыночная стоимость:</span> {{ res_calc.price.toLocaleString('ru') }} ₽
+                                <span class="text-bold">Рыночная стоимость:</span>
+                                {{ res_calc.price.toLocaleString('ru') }} ₽
                             </div>
                             <div class="text-caption">(с НДС)</div>
                         </div>
                     </div>
                     <div class="q-mt-md">
-                        <q-btn label="Рассчитать для всех объектов" color="primary" unelevated @click="revealResults()"/>
-                        <q-btn label="Выгрузить расчёт эталона .csv" no-caps class="q-ml-sm" color="primary" flat @click="exportToCSV()"/>
+                        <q-btn label="Рассчитать для всех объектов" color="primary" unelevated
+                               @click="revealResults()"/>
+                        <q-btn label="Выгрузить расчёт эталона .csv" no-caps class="q-ml-sm" color="primary" flat
+                               @click="exportToCSV()"/>
                     </div>
                 </q-card-section>
             </q-card>
@@ -420,8 +424,7 @@ export default {
                         row[index + 1] = used_setting.values[index];
                     })
                     rows.push(row)
-                }
-                else {
+                } else {
                     let row = {
                         0: base_setting.Название,
                     };
@@ -460,23 +463,39 @@ export default {
             }
         },
         //Вывлд алерта о 20 и 33%
-        showAlert(){
+        showAlert() {
             //Выводим алерт если нужно
-            let path = "/calculator/pools/"+(this.object.Пул)+"/"+(this.object.id);
+            let path = "/calculator/pools/" + (this.object.Пул) + "/" + (this.object.id);
             this.notifications = [];
-            if(this.res_calc.errors.length !== 0) {
+            if (this.res_calc.errors.length !== 0) {
                 this.res_calc.errors.forEach((error, index) => {
-                    this.notifications.push(this.$q.notify({
-                        message: error.text,
-                        icon: 'warning',
-                        timeout: 0,
-                        actions: [
-                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{}},
-                            {label: 'Ингнорировать', color: 'white', handler: () => {}},
-                        ]
-                    }));
-                })
+                    this.alert('ВНИМАНИЕ!', error.text, [
+                        {
+                            label: 'Вернуться к выбору аналогов', color: 'blue', to: path, handler: () => {
+                            }
+                        },
+                        {
+                            label: 'Ингнорировать', color: 'blue', handler: () => {
+                            }
+                        },
+                    ], 0, 'warning', 'red');
+
+                });
             }
+        },
+        alert(title, text, buttons, timeout = 0, icon = 'announcement', iconColour = 'orange') {
+            this.notifications.push(this.$q.notify({
+                icon: icon,
+                iconColor: iconColour,
+                color: 'white',
+                textColor: 'black',
+                position: 'top',
+                message: title + "<br><b>" + text + "</b><br><br>Выберете дальнейшее действие",
+                html: true,
+                timeout: timeout,
+                actions: buttons,
+            }));
+
         }
     },
     computed: {
@@ -485,7 +504,7 @@ export default {
             let rows = [];
 
             //Добавляем эталонный объект в начало
-            let row = Object.assign({},this.object);
+            let row = Object.assign({}, this.object);
             row[0] = 'Эталон';
             row.Состояние = store.getters.nameOfConditionById(this.object.Состояние).toLowerCase();
             row.Сегмент = store.getters.nameOfSegmentById(this.object.Сегмент).toLowerCase();
@@ -559,8 +578,8 @@ export default {
     beforeMount() {
         this.loadData();
     },
-    beforeRouteLeave(){
-        this.notifications.forEach((notify) =>{
+    beforeRouteLeave() {
+        this.notifications.forEach((notify) => {
             notify();
         });
         this.notifications = [];

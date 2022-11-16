@@ -148,7 +148,7 @@ let checkTax = (analogArr, average) => {
         let diffTmp = ((analogArr[i].priceM - average) / average);
         //Сравниваем разницу с значением в 20%
         if (Math.abs(diffTmp) > diff) {
-            errors.push({text:"Отклонение в цене " + (i + 1) + " аналога отличается от среднего значения выборки на " + (Math.round(diffTmp * 100)) + "%. Налоговый орган в праве доначислить налог (НК РФ ст. 146-ФЗ)."});
+            errors.push({text:"Отклонение в цене " + (i + 1) + " аналога отличается от среднего значения выборки на " + (Math.round(diffTmp * 100)) + "%.<br>Налоговый орган в праве доначислить налог (НК РФ ст. 146-ФЗ)."});
         }
         //Вывод разницы для 1 аналога
         analogArr[i].cCalculation.cTax = diffTmp;
