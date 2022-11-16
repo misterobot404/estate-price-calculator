@@ -7,8 +7,13 @@
             :detailed-controls="map_detailed_controls"
             :controls="map_controls"
         >
-            <YandexClusterer v-if="objects">
-                <YandexMarker v-for="object in objects" :coordinates="[object.coordx, object.coordy]" :marker-id="object.id"/>
+            <YandexClusterer v-if="objects" :options="{disableClickZoom: true}">
+                <YandexMarker
+                    v-for="(object, index) in objects"
+                    :properties="{clusterCaption: 'Квартира № '+ (index + 1), balloonContentBody: getBalloonContentBody(object)}"
+                    :coordinates="[object.coordx, object.coordy]"
+                    :marker-id="object.id"
+                />
             </YandexClusterer>
         </YandexMap>
         <YandexMap
@@ -21,32 +26,35 @@
             <template v-if="analogs && selected_object">
                 <YandexMarker :coordinates="[selected_object.coordx, selected_object.coordy]" :options="{'preset': 'islands#redDotIcon'}" marker-id="1000000"/>
 
-                <YandexMarker
-                    v-for="analog in analogs"
-                    :ref="'analog_'+analog.id"
-                    :coordinates="[analog.coordx, analog.coordy]"
-                    :options="{'preset':  'islands#blackIcon'}"
-                    :marker-id="analog.id"
-                >
-                    <template #component>
-                        <div>
-                            <div class="flex justify-center">
-                                <q-img src="/images/object-icon.svg" width="60px" no-spinner/>
-                            </div>
-                            <div class="q-mt-sm">
-                                <div class="text-bold text-center q-mb-sm">{{ analog.Стоимость }} ₽</div>
-                                <div v-text="analog.Местоположение"/>
-                                <div>Состояние: {{ analog.Состояние.toLowerCase() }}</div>
-                                <div>Площадь квартиры: {{ analog.ПлощадьКвартиры }} кв. м.</div>
-                                <div>Количество комнат: {{ analog.КоличествоКомнат }}</div>
-                                <div>Этаж расположения: {{ analog.ЭтажРасположения }} этаж</div>
+                <YandexClusterer>
+                    <YandexMarker
+                        v-for="(analog, index) in analogs"
+                        :ref="'analog_'+analog.id"
+                        :properties="{clusterCaption: 'Квартира № '+ (index + 1), balloonContentBody: getAnalogBalloonContentBody(analog)}"
+                        :coordinates="[analog.coordx, analog.coordy]"
+                        :options="{'preset':  'islands#blackIcon'}"
+                        :marker-id="analog.id"
+                    >
+                        <template #component>
+                            <div>
                                 <div class="flex justify-center">
-                                    <q-btn @click.="selectAnalog(analog.id)" class="q-mt-md" style="width: 200px" label="Выбрать аналог" size="sm" no-caps color="primary"/>
+                                    <q-img src="/images/object-icon.svg" width="60px" no-spinner/>
+                                </div>
+                                <div class="q-mt-sm">
+                                    <div class="text-bold text-center q-mb-sm">{{ analog.Стоимость }} ₽</div>
+                                    <div v-text="analog.Местоположение"/>
+                                    <div>Состояние: {{ analog.Состояние.toLowerCase() }}</div>
+                                    <div>Площадь квартиры: {{ analog.ПлощадьКвартиры }} кв. м.</div>
+                                    <div>Количество комнат: {{ analog.КоличествоКомнат }}</div>
+                                    <div>Этаж расположения: {{ analog.ЭтажРасположения }} этаж</div>
+                                    <div class="flex justify-center">
+                                        <q-btn @click="selectAnalog(analog.id)" class="q-mt-md" style="width: 200px" label="Выбрать аналог" size="sm" no-caps color="primary"/>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                </YandexMarker>
+                        </template>
+                    </YandexMarker>
+                </YandexClusterer>
             </template>
         </YandexMap>
 
@@ -322,7 +330,7 @@ export default {
 
             dismiss_notify: () => void 0,
 
-            map: null
+            map: null,
         }
     },
     methods: {
@@ -384,11 +392,10 @@ export default {
                             this.dismiss_notify = this.$q.notify({
                                 message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
                                 icon: 'straighten',
-                                color: 'primary',
                                 timeout: 0,
                                 actions: [
                                     {
-                                        label: 'Не увеличивать расстояние', color: 'blue-grey-2', handler: () => {
+                                        label: 'Не увеличивать расстояние', color: 'grey-5', handler: () => {
                                             window.location.replace(this.$route.path + "?max_distance=1500");
                                         }
                                     },
@@ -400,20 +407,19 @@ export default {
                             this.dismiss_notify = this.$q.notify({
                                 message: 'Расстояние для поиска аналогов составляет ' + max_distance + ' метров',
                                 icon: 'straighten',
-                                color: 'primary',
                                 timeout: 0,
                                 actions: [
-                                    {label: 'Понятно', color: 'white', handler: () => {}},
                                     {
-                                        label: 'Изменить на оптимальное расстояние', color: 'white', handler: () => {
+                                        label: 'Изменить на оптимальное расстояние', color: 'grey-5', handler: () => {
                                             window.location.replace(this.$route.path);
                                         }
-                                    }
+                                    },
+                                    {label: 'Понятно', color: 'white', handler: () => {}}
                                 ]
                             })
                         }
 
-                        // Выбор первых трёх наиболее релевантных аналогов по умолчанию
+                        // Выбор первых пяти наиболее релевантных аналогов по умолчанию
                         if (this.analogs.length < 3) {
                             this.$q.notify({message: 'Количество подобранных аналогов недостаточно для расчёта', icon: 'announcement'})
                         } else {
@@ -553,6 +559,37 @@ export default {
         endCalc() {
             axios.post('/api/completed_calc_pool', {pool_id: this.$route.params.pool_id,})
                 .then((response) => this.$router.push("/calculator"))
+        },
+        getBalloonContentBody(object) {
+            let balloon_body = `
+                <div class="q-pt-xs"><span style="text-decoration: underline">Адрес</span>: ${object.Местоположение}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Состояние</span>: ${this.$store.getters.nameOfConditionById(object.Состояние).toLowerCase()}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Площадь квартиры</span>: ${object.ПлощадьКвартиры} кв. м.</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Количество комнат</span>: ${this.$store.getters.nameOfNumberRoomsById(object.КоличествоКомнат)}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Этаж расположения</span>: ${object.ЭтажРасположения} этаж</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Этажность дома</span>: ${object.ЭтажностьДома}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Площадь кухни</span>: ${object.ПлощадьКухни} кв. м.</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Сегмент</span>: ${this.$store.getters.nameOfSegmentById(object.Сегмент).toLowerCase()}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Материал стен</span>: ${this.$store.getters.nameOfWallById(object.МатериалСтен).toLowerCase()}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Наличие балкона/лоджии</span>: ${object.НаличиеБалконаЛоджии ? "да" : "нет"}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Время до метро (пешком)</span>: ${object.МетроМин} мин.</div>`;
+            return balloon_body;
+        },
+        getAnalogBalloonContentBody(object) {
+            let balloon_body = `
+                <div class="q-pt-xs"><span style="text-decoration: underline">Стоимость</span>: ${object.Стоимость.toLocaleString('ru')} ₽</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Адрес</span>: ${object.Местоположение}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Состояние</span>: ${object.Состояние.toLowerCase()}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Площадь квартиры</span>: ${object.ПлощадьКвартиры} кв. м.</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Количество комнат</span>: ${object.КоличествоКомнат}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Этаж расположения</span>: ${object.ЭтажРасположения} этаж</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Этажность дома</span>: ${object.ЭтажностьДома}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Площадь кухни</span>: ${object.ПлощадьКухни} кв. м.</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Сегмент</span>: ${object.Сегмент.toLowerCase()}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Материал стен</span>: ${object.МатериалСтен.toLowerCase()}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Наличие балкона/лоджии</span>: ${object.НаличиеБалконаЛоджии ? "да" : "нет"}</div>
+                <div class="q-pt-xs"><span style="text-decoration: underline">Время до метро (пешком)</span>: ${object.МетроМин} мин.</div>`
+            return balloon_body;
         }
     },
     computed: {
@@ -575,7 +612,8 @@ export default {
             lang: 'ru_RU', // Используемый язык
             coordorder: 'latlong', // Порядок задания географических координат
             debug: false, // Режим отладки
-            version: '2.1' // Версия Я.Карт
+            version: '2.1', // Версия Я.Карт,
+
         }
         this.map = loadYmap({settings});
     },

@@ -38,7 +38,7 @@
                 wrap-cells
                 :rows-per-page-options="[0]"
                 hide-bottom
-                :card-style="{ padding: '14px 20px' }"
+                :card-style="{ padding: '18px 22px' }"
             />
 
             <div class="text-bold text-h8 q-mb-sm q-mt-lg">Корректирующие коэффициенты аналогов</div>
@@ -48,12 +48,27 @@
                 row-key="Название"
                 :rows-per-page-options="[0]"
                 hide-bottom
-                :card-style="{ padding: '14px 20px' }"
+                :card-style="{ padding: '18px 22px' }"
             >
                 <template v-slot:body-cell-delete="props">
                     <q-td :props="props">
                         <div>
-                            <q-btn flat round color="primary" icon="remove_circle_outline" @click="disableCoof(props.row[0])"/>
+                            <q-btn
+                                v-if="settingsAfterDisabled.find(el => el.id === settings.find(setting => setting.Название === props.row[0])?.id)"
+                                flat
+                                round
+                                icon="check_box"
+                                class="text-grey-7"
+                                @click="disableCoof(props.row[0])"
+                            />
+                            <q-btn
+                                v-else
+                                flat
+                                round
+                                icon="check_box_outline_blank"
+                                class="text-grey-7"
+                                @click="enableCoof(props.row[0])"
+                            />
                         </div>
                     </q-td>
                 </template>
@@ -65,7 +80,7 @@
                 :columns="extend_coef_table.columns"
                 :rows-per-page-options="[0]"
                 hide-bottom
-                :card-style="{ padding: '14px 20px' }"
+                :card-style="{ padding: '18px 22px' }"
             />
         </div>
     </div>
@@ -189,7 +204,9 @@ export default {
             res_calc: null,
 
             analog_objects_of_pool: null,
-            result_for_mass_reveal: null
+            result_for_mass_reveal: null,
+
+            settingsAfterDisabled: []
         }
     },
     methods: {
@@ -329,15 +346,16 @@ export default {
                 spinnerSize: 120,
                 backgroundColor: 'grey-4',
                 spinnerColor: 'primary'
-            })
+            });
 
             axios.get('/api/get_operation/' + this.$route.params.operation_id)
                 .then((response) => {
                     this.object = response.data.data.object;
                     this.analogs = JSON.parse(response.data.data.operation.Аналоги);
                     this.settings = response.data.data.settings;
+                    this.settingsAfterDisabled = [...this.settings];
 
-                    this.res_calc = this.calc(this.object, this.analogs, this.settings);
+                    this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
                     this.coef_table = this.setCoefTable();
 
                     this.is_done = true;
@@ -346,10 +364,26 @@ export default {
         },
 
         disableCoof(coof_name) {
-            let el = this.settings.findIndex(setting => setting.Название === coof_name);
-            this.settings.splice(el, 1);
+            let el_index = this.settingsAfterDisabled.findIndex(setting => setting.Название === coof_name);
+            this.settingsAfterDisabled.splice(el_index, 1);
 
-            this.res_calc = this.calc(this.object, this.analogs, this.settings);
+            this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
+
+            this.coef_table = null;
+            this.coef_table = this.setCoefTable();
+
+            this.$q.notify({
+                message: 'Цена пересчитана относительно кор-их коэффициентов',
+                icon: 'announcement'
+            })
+        },
+
+        enableCoof(coof_name) {
+            let el = this.settings.find(setting => setting.Название === coof_name);
+
+            this.settingsAfterDisabled.push(el);
+
+            this.res_calc = this.calc(this.object, this.analogs, this.settingsAfterDisabled);
 
             this.coef_table = null;
             this.coef_table = this.setCoefTable();
@@ -392,8 +426,9 @@ export default {
             })
             columns.push({
                 name: 'delete',
-                label: 'Отключить',
-                align: 'center'
+                label: 'Состояние',
+                align: 'center',
+                style: 'width: 100px'
             })
 
             return {
@@ -408,11 +443,11 @@ export default {
             let rows = [];
 
             //Добавляем эталонный объект в начало
-            let row = this.object;
+            let row = JSON.parse(JSON.stringify(this.object));
             row[0] = 'Эталон';
-            row.Состояние = store.getters.nameOfConditionById(row.Состояние).toLowerCase();
-            row.Сегмент = store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
-            row.МатериалСтен = store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
+            row.Состояние = this.$store.getters.nameOfConditionById(row.Состояние).toLowerCase();
+            row.Сегмент = this.$store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
+            row.МатериалСтен = this.$store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
             row.Стоимость = this.res_calc.price;
             row.Стоимость_м = this.res_calc.price_m;
             rows.push(row);
