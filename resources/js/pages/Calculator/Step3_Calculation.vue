@@ -429,11 +429,11 @@ export default {
             let rows = [];
 
             //Добавляем эталонный объект в начало
-            let row = this.object;
+            let row = Object.assign({},this.object);
             row[0] = 'Эталон';
-            row.Состояние = store.getters.nameOfConditionById(row.Состояние).toLowerCase();
-            row.Сегмент = store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
-            row.МатериалСтен = store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
+            row.Состояние = store.getters.nameOfConditionById(this.object.Состояние).toLowerCase();
+            row.Сегмент = store.getters.nameOfSegmentById(this.object.Сегмент).toLowerCase();
+            row.МатериалСтен = store.getters.nameOfWallById(this.object.МатериалСтен).toLowerCase();
             row.Стоимость = this.res_calc.price;
             row.Стоимость_м = this.res_calc.price_m;
             rows.push(row);
