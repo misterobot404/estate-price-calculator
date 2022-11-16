@@ -375,13 +375,15 @@ export default {
                         }
 
                         let local_id = 0;
-                        response.data.data.analogs.forEach(el => {
-                            let dist = ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]);
+                        this.map.then(() => {
+                            response.data.data.analogs.forEach(el => {
+                                let dist = ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]);
 
-                            if (dist < max_distance) {
-                                el.id = --local_id;
-                                this.analogs.push(el);
-                            }
+                                if (dist < max_distance) {
+                                    el.id = --local_id;
+                                    this.analogs.push(el);
+                                }
+                            })
                         })
 
                         // Сортировка аналогов по количеству соответствующих признаков

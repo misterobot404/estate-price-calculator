@@ -75,10 +75,13 @@ export default {
 
             axios.get('/api/settings/' + this.selected_year)
                 .then((response) => {
-                    let raw_tables = response.data.data.settings.map(el => {
-                        el.Данные = JSON.parse(el.Данные);
-                        return el;
-                    });
+                    let raw_tables = response.data.data.settings
+                        .sort((a, b) => {
+                            return a < b ? -1 : 1;
+                        }).map(el => {
+                            el.Данные = JSON.parse(el.Данные);
+                            return el;
+                        });
 
                     this.raw_tables = JSON.parse(JSON.stringify(raw_tables));
 
@@ -144,8 +147,7 @@ export default {
                         let temp = Object.values(el.Данные.rows[index_row]);
                         temp.shift();
                         el.Данные.rows[index_row] = temp;
-                    }
-                    else {
+                    } else {
                         el.Данные.rows = Number(el.Данные.rows[index_row][0]);
                     }
                 });
