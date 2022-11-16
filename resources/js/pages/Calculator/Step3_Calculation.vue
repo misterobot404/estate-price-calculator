@@ -189,7 +189,8 @@ export default {
             res_calc: null,
 
             analog_objects_of_pool: null,
-            result_for_mass_reveal: null
+            result_for_mass_reveal: null,
+            notifications: [],
         }
     },
     methods: {
@@ -322,21 +323,17 @@ export default {
         calc(object, analogs, settings) {
             let result = calc_func.findEtalonPrice(object, analogs, settings);
             let path = "/calculator/pools/"+(object.Пул)+"/"+(object.id);
-            let notifications = [];
-            if(result.errors.length != 0) {
-                result.errors.forEach(error => {
-                   notifications.push(this.$q.notify({
+            this.notifications = [];
+            if(result.errors.length !== 0) {
+                result.errors.forEach((error, index) => {
+                   this.notifications.push(this.$q.notify({
                         message: error.text,
-                        icon: 'announcement',
-                        position: "top",
+                        icon: 'warning',
                         color: 'primary',
                         timeout: 0,
                         actions: [
-                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{notifications.forEach(notify =>{
-                                notify();
-                                })}},
-                            {label: 'Ингнорировать', color: 'white', handler: () => {notifications.forEach(notify =>{
-                                    notify();})}},
+                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{}},
+                            {label: 'Ингнорировать', color: 'white', handler: () => {}},
                         ]
                     }));
                 })
@@ -502,6 +499,12 @@ export default {
     },
     beforeMount() {
         this.loadData();
+    },
+    beforeRouteLeave(){
+        this.notifications.forEach((notify) =>{
+            notify();
+        });
+        this.notifications = [];
     }
 }
 </script>
