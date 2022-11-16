@@ -478,7 +478,7 @@ export default {
                             label: 'Ингнорировать', color: 'blue', handler: () => {
                             }
                         },
-                    ], 0, 'warning', 'red');
+                    ], 0, 'warning', 'red', );
 
                 });
             }
@@ -490,7 +490,7 @@ export default {
                 color: 'white',
                 textColor: 'black',
                 position: 'top',
-                message: title + "<br><b>" + text + "</b><br><br>Выберете дальнейшее действие",
+                message: `${title}<br><b>${text}</b><div class='q-mt-sm'>Выберете дальнейшее действие<div>`,
                 html: true,
                 timeout: timeout,
                 actions: buttons,
@@ -586,3 +586,11 @@ export default {
     }
 }
 </script>
+
+<style>
+/* Костыльно */
+i.q-icon.text-red {
+    margin-bottom: auto !important;
+    margin-top: 8px;
+}
+</style>
