@@ -229,7 +229,18 @@
                         </template>
                         <template v-else>
                             <template v-if="analogs?.length">
-                                <div v-for="(analog, index) in analogs">
+                                <template v-if="analogs.length === selected_analogs.length">
+                                    <div class="flex column items-center content-center text-center">
+                                        <q-img
+                                            class="q-mt-md"
+                                            src="/images/no-data.svg"
+                                            no-spinner
+                                            style="max-width: 150px"
+                                        />
+                                        <div class="q-my-md">Выбраны все доступные аналоги</div>
+                                    </div>
+                                </template>
+                                <div v-else v-for="(analog, index) in analogs">
                                     <div class="flex q-my-md" v-if="!selected_analogs.find(el => el.id === analog.id)">
                                         <div>
                                             <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
@@ -308,6 +319,10 @@ export default {
             selected_analogs: [],
 
             last_selected_marker: null,
+
+            dismiss_notify: () => void 0,
+
+            map: null
         }
     },
     methods: {
@@ -347,11 +362,9 @@ export default {
                             } else if (distance_res.filter(el => el <= 3000).length >= 3) {
                                 max_distance = 3000;
                             } else max_distance = 5000;
-                        }
-                        else {
+                        } else {
                             max_distance = 1500;
                         }
-
 
                         let local_id = 0;
                         response.data.data.analogs.forEach(el => {
@@ -363,26 +376,30 @@ export default {
                             }
                         })
 
+                        // Сортировка аналогов по количеству соответствующих признаков
+                        this.sortAnalogs();
+
                         if (max_distance > 1500) {
-                            this.$q.notify({
+                            this.dismiss_notify();
+                            this.dismiss_notify = this.$q.notify({
                                 message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
-                                icon: 'announcement',
+                                icon: 'straighten',
                                 color: 'primary',
                                 timeout: 0,
                                 actions: [
-                                    {label: 'Понятно', color: 'white', handler: () => {}},
                                     {
-                                        label: 'Не увеличивать расстояние', color: 'white', handler: () => {
+                                        label: 'Не увеличивать расстояние', color: 'blue-grey-2', handler: () => {
                                             window.location.replace(this.$route.path + "?max_distance=1500");
                                         }
-                                    }
+                                    },
+                                    {label: 'Понятно', color: 'white', handler: () => {}}
                                 ]
                             })
-                        }
-                        else if (this.$route.query.max_distance) {
-                            this.$q.notify({
+                        } else if (this.$route.query.max_distance) {
+                            this.dismiss_notify();
+                            this.dismiss_notify = this.$q.notify({
                                 message: 'Расстояние для поиска аналогов составляет ' + max_distance + ' метров',
-                                icon: 'announcement',
+                                icon: 'straighten',
                                 color: 'primary',
                                 timeout: 0,
                                 actions: [
@@ -394,6 +411,21 @@ export default {
                                     }
                                 ]
                             })
+                        }
+
+                        // Выбор первых трёх наиболее релевантных аналогов по умолчанию
+                        if (this.analogs.length < 3) {
+                            this.$q.notify({message: 'Количество подобранных аналогов недостаточно для расчёта', icon: 'announcement'})
+                        } else {
+                            this.map.then(() => {
+                                this.analogs.every((el, index) => {
+                                    if (index > 5) {
+                                        return false;
+                                    }
+                                    this.selectAnalog(this.analogs[index].id);
+                                    return true;
+                                })
+                            });
                         }
 
                         this.data_loading = false;
@@ -422,6 +454,39 @@ export default {
                 axios.get('/api/all_calculation_objects')
                     .then((response) => this.objects = response.data.data.objects)
             }
+        },
+        // Сортировка аналогов по количеству соответствующих признаков
+        sortAnalogs() {
+            // Получаем объект и приводим его поля к виду как у аналогов
+            let obj = JSON.parse(JSON.stringify(this.selected_object));
+            obj.КоличествоКомнат = this.$store.getters.nameOfNumberRoomsById(obj.КоличествоКомнат);
+            obj.МатериалСтен = this.$store.getters.nameOfWallById(obj.МатериалСтен);
+            obj.Сегмент = this.$store.getters.nameOfSegmentById(obj.Сегмент);
+            obj.Состояние = this.$store.getters.nameOfConditionById(obj.Состояние);
+
+            // Создать массив массивов (количество массивов = количеству ключей у целевого объекта)
+            let sort_arr_temp = [];
+            Object.keys(this.selected_object).forEach(() => {
+                sort_arr_temp.push([]);
+            })
+
+            // Проходимся по всем аналогам
+            this.analogs.forEach((analog) => {
+                // Считаем, сколько у аналога и объекта общих свойств
+                let shared_count = 0;
+                Object.keys(analog).forEach(key => {
+                    if (obj[key] === analog[key]) {
+                        ++shared_count;
+                    }
+                })
+                sort_arr_temp[shared_count].push(analog);
+            })
+
+            // Убираем пустые массивы
+            sort_arr_temp = sort_arr_temp.filter(el => el.length);
+
+            // Заносим в analogs с обратной стороны с переводом структуры массив-массив в массив
+            this.analogs = sort_arr_temp.reverse().flat();
         },
         getNameOfRoomsById(id) {
             let name = this.$store.getters.nameOfNumberRoomsById(id);
@@ -464,7 +529,6 @@ export default {
                 this.$q.notify({message: 'Достигнуто максимальное количество выбранных аналогов', icon: 'announcement'})
             } else {
                 this.$refs['analog_' + id][0].options.set({'preset': 'islands#redIcon'});
-
                 this.selected_analogs.push(this.analogs.find(el => el.id === id));
             }
         },
@@ -513,8 +577,12 @@ export default {
             debug: false, // Режим отладки
             version: '2.1' // Версия Я.Карт
         }
+        this.map = loadYmap({settings});
+    },
 
-        loadYmap({settings});
+    // Удаляем notify при переходе со страницы
+    beforeRouteLeave(to, from) {
+        this.dismiss_notify();
     },
 }
 </script>
