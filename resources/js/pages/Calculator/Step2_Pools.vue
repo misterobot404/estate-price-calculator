@@ -375,7 +375,7 @@ export default {
                         }
 
                         let local_id = 0;
-                        this.map.then(() => {
+                        setTimeout(() => {
                             response.data.data.analogs.forEach(el => {
                                 let dist = ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]);
 
@@ -384,7 +384,7 @@ export default {
                                     this.analogs.push(el);
                                 }
                             })
-                        })
+                        }, 300)
 
                         // Сортировка аналогов по количеству соответствующих признаков
                         this.sortAnalogs();
