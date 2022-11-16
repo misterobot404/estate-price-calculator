@@ -360,7 +360,7 @@ let findEtalonPrice = (reference, analogArr, tables) => {
     for (let i = 0; i < cTables.length; i++) {
         res.analog_changes_table.push({
             name: cTables[i].tableName,
-            values: class_analog_arr.map(el => (el.cCalculation.appliedC[i].cValue * 100).toFixed(2) + '% (' + Math.floor(el.cCalculation.appliedC[i].cPrice) + ' ₽)')
+            values: class_analog_arr.map(el => (el.cCalculation.appliedC[i].cValue * 100).toFixed(2) + '% (' + Math.floor(el.cCalculation.appliedC[i].cPrice).toLocaleString('ru') + ' ₽)')
         })
     }
     // coef_meta_table

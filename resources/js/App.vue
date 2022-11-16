@@ -198,4 +198,8 @@ body {
 .btn-background-primary {
     background-color: #e9f1f9
 }
+
+.text-bold {
+    font-weight: 600 !important;
+}
 </style>

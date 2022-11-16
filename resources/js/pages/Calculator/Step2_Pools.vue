@@ -75,7 +75,7 @@
                                     <q-img src="/images/pool-icon.svg" width="40px" no-spinner/>
                                 </div>
                                 <div class="q-ml-md col-grow">
-                                    <div class="text-negative">{{pool.status}}</div>
+                                    <div class="text-negative">{{ pool.status }}</div>
                                     <div class="text-h8" v-text="getNameOfRoomsById(pool.КоличествоКомнат)"/>
                                     <div class="text-small">
                                         Количество квартир: {{ pool.КоличествоОбъектов }}
@@ -104,7 +104,7 @@
                                 </div>
                                 <div class="q-ml-md col-grow">
                                     <div v-if="objects_price" class="text-h8 text-primary">
-                                        {{ Math.floor(objects_price[index].Стоимость * object.ПлощадьКвартиры) }} ₽
+                                        {{ Math.floor(objects_price[index].Стоимость * object.ПлощадьКвартиры).toLocaleString('ru') }} ₽
                                     </div>
                                     <div class="text-bold" v-text="object.Местоположение"/>
                                     <div class="">Состояние: {{ $store.getters.nameOfConditionById(object.Состояние).toLowerCase() }}</div>
@@ -193,7 +193,7 @@
                                     <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
                                 </div>
                                 <div class="q-ml-md col-grow">
-                                    <div class="text-bold">{{ selected_analog.Стоимость }} ₽</div>
+                                    <div class="text-bold">{{ Number(selected_analog.Стоимость).toLocaleString('ru') }} ₽</div>
                                     <div v-text="selected_analog.Местоположение"/>
                                     <div>Состояние: {{ selected_analog.Состояние.toLowerCase() }}</div>
                                     <div>Площадь квартиры: {{ selected_analog.ПлощадьКвартиры }} кв. м.</div>
@@ -228,39 +228,52 @@
                             </div>
                         </template>
                         <template v-else>
-                            <div v-for="(analog, index) in analogs">
-                                <div class="flex q-my-md" v-if="!selected_analogs.find(el => el.id === analog.id)">
-                                    <div>
-                                        <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
-                                    </div>
-                                    <div class="q-ml-md col-grow">
-                                        <div class="text-bold">
-                                            {{ analog.Стоимость }} ₽
-                                        </div>
-                                        <div v-text="analog.Местоположение"/>
-                                        <div>Состояние: {{ analog.Состояние.toLowerCase() }}</div>
-                                        <div>Площадь квартиры: {{ analog.ПлощадьКвартиры }} кв. м.</div>
-                                        <div>Количество комнат: {{ analog.КоличествоКомнат }}</div>
-                                        <div>Этаж расположения: {{ analog.ЭтажРасположения }} этаж</div>
+                            <template v-if="analogs?.length">
+                                <div v-for="(analog, index) in analogs">
+                                    <div class="flex q-my-md" v-if="!selected_analogs.find(el => el.id === analog.id)">
                                         <div>
-                                            <q-icon name="more_horiz" @click="extended_el_id === analog.id ? extended_el_id = null : extended_el_id = analog.id" class="cursor-pointer text-grey-8"/>
+                                            <q-img src="/images/object-icon.svg" width="40px" no-spinner/>
                                         </div>
-                                        <q-slide-transition>
-                                            <div v-show="extended_el_id === analog.id">
-                                                <div>Этажность дома: {{ analog.ЭтажностьДома }}</div>
-                                                <div>Площадь кухни: {{ analog.ПлощадьКухни }} кв. м.</div>
-                                                <div>Сегмент: {{ analog.Сегмент.toLowerCase() }}</div>
-                                                <div>Материал стен: {{ analog.МатериалСтен.toLowerCase() }}</div>
-                                                <div>Наличие балкона/лоджии: {{ analog.НаличиеБалконаЛоджии ? "да" : "нет" }}</div>
-                                                <div>Время до метро (пешком): {{ analog.МетроМин }} мин.</div>
+                                        <div class="q-ml-md col-grow">
+                                            <div class="text-bold">
+                                                {{ Number(analog.Стоимость).toLocaleString('ru') }} ₽
                                             </div>
-                                        </q-slide-transition>
-                                        <q-btn flat color="primary" label="Выбрать аналог" no-caps class="q-mt-sm btn-background-primary" size="md"
-                                               @click="selectAnalog(analog.id)"/>
-                                        <q-separator class="q-mt-md" v-show="analogs.length - 1 !== index"/>
+                                            <div v-text="analog.Местоположение"/>
+                                            <div>Состояние: {{ analog.Состояние.toLowerCase() }}</div>
+                                            <div>Площадь квартиры: {{ analog.ПлощадьКвартиры }} кв. м.</div>
+                                            <div>Количество комнат: {{ analog.КоличествоКомнат }}</div>
+                                            <div>Этаж расположения: {{ analog.ЭтажРасположения }} этаж</div>
+                                            <div>
+                                                <q-icon name="more_horiz" @click="extended_el_id === analog.id ? extended_el_id = null : extended_el_id = analog.id" class="cursor-pointer text-grey-8"/>
+                                            </div>
+                                            <q-slide-transition>
+                                                <div v-show="extended_el_id === analog.id">
+                                                    <div>Этажность дома: {{ analog.ЭтажностьДома }}</div>
+                                                    <div>Площадь кухни: {{ analog.ПлощадьКухни }} кв. м.</div>
+                                                    <div>Сегмент: {{ analog.Сегмент.toLowerCase() }}</div>
+                                                    <div>Материал стен: {{ analog.МатериалСтен.toLowerCase() }}</div>
+                                                    <div>Наличие балкона/лоджии: {{ analog.НаличиеБалконаЛоджии ? "да" : "нет" }}</div>
+                                                    <div>Время до метро (пешком): {{ analog.МетроМин }} мин.</div>
+                                                </div>
+                                            </q-slide-transition>
+                                            <q-btn flat color="primary" label="Выбрать аналог" no-caps class="q-mt-sm btn-background-primary" size="md"
+                                                   @click="selectAnalog(analog.id)"/>
+                                            <q-separator class="q-mt-md" v-show="analogs.length - 1 !== index"/>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
+                            <template v-else>
+                                <div class="flex column items-center content-center">
+                                    <q-img
+                                        class="q-mt-md"
+                                        src="/images/no-data.svg"
+                                        no-spinner
+                                        style="max-width: 150px"
+                                    />
+                                    <div class="q-mt-md">Аналоги не найдены</div>
+                                </div>
+                            </template>
                         </template>
                     </q-card-section>
                 </q-card>
@@ -321,14 +334,24 @@ export default {
                             distance_res.push(ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]))
                         })
 
-                        // Определяем, какое минимальное расстояние нам нужно взять для расчётов
-                        if (distance_res.filter(el => el <= 1000).length >= 3) {
-                            max_distance = 1000;
-                        } else if (distance_res.filter(el => el <= 1500).length >= 3) {
+                        if (!this.$route.query.max_distance) {
+                            // Определяем, какое минимальное расстояние нам нужно взять для расчётов
+                            if (distance_res.filter(el => el <= 1000).length >= 3) {
+                                max_distance = 1000;
+                            } else if (distance_res.filter(el => el <= 1500).length >= 3) {
+                                max_distance = 1500;
+                            } else if (distance_res.filter(el => el <= 2000).length >= 3) {
+                                max_distance = 2000;
+                            } else if (distance_res.filter(el => el <= 2500).length >= 3) {
+                                max_distance = 2500;
+                            } else if (distance_res.filter(el => el <= 3000).length >= 3) {
+                                max_distance = 3000;
+                            } else max_distance = 5000;
+                        }
+                        else {
                             max_distance = 1500;
-                        } else if (distance_res.filter(el => el <= 3000).length >= 3) {
-                            max_distance = 3000;
-                        } else max_distance = 5000;
+                        }
+
 
                         let local_id = 0;
                         response.data.data.analogs.forEach(el => {
@@ -340,10 +363,36 @@ export default {
                             }
                         })
 
-                        if (max_distance === 3000 || max_distance === 5000) {
+                        if (max_distance > 1500) {
                             this.$q.notify({
                                 message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
-                                icon: 'announcement'
+                                icon: 'announcement',
+                                color: 'primary',
+                                timeout: 0,
+                                actions: [
+                                    {label: 'Понятно', color: 'white', handler: () => {}},
+                                    {
+                                        label: 'Не увеличивать расстояние', color: 'white', handler: () => {
+                                            window.location.replace(this.$route.path + "?max_distance=1500");
+                                        }
+                                    }
+                                ]
+                            })
+                        }
+                        else if (this.$route.query.max_distance) {
+                            this.$q.notify({
+                                message: 'Расстояние для поиска аналогов составляет ' + max_distance + ' метров',
+                                icon: 'announcement',
+                                color: 'primary',
+                                timeout: 0,
+                                actions: [
+                                    {label: 'Понятно', color: 'white', handler: () => {}},
+                                    {
+                                        label: 'Изменить на оптимальное расстояние', color: 'white', handler: () => {
+                                            window.location.replace(this.$route.path);
+                                        }
+                                    }
+                                ]
                             })
                         }
 
@@ -444,6 +493,7 @@ export default {
     },
     computed: {
         page() {
+            // Первичная загрузка так же происходит отсюда
             this.loadData();
 
             if (this.$route.params.object_id) {
@@ -456,8 +506,6 @@ export default {
         },
     },
     beforeMount() {
-        this.loadData();
-
         const settings = {
             apiKey: '253b2eae-b322-4893-a57c-3d63323b3558', // Индивидуальный ключ API
             lang: 'ru_RU', // Используемый язык

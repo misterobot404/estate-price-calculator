@@ -1,82 +1,73 @@
 <template>
     <div v-if="is_done" class="q-pa-lg">
-        <div class="flex items-center q-mb-md">
+        <div class="flex items-center">
             <q-btn flat round icon="arrow_back" size="sm" class="text-grey-8" :to="'/calculator/pools/'+object.Пул+'/'+object.id"/>
-            <div class="q-ml-xs">Изменить аналоги</div>
+            <div class="q-ml-xs">Вернуться к карте</div>
         </div>
 
-        <q-card>
-            <q-card-section class="q-pa-lg">
-                <div class="text-h8 q-mb-md">Итоговый расчёт эталона</div>
-                <q-separator class="q-my-md"/>
-                <div class="flex">
-                    <div class="q-mr-lg">
-                        <div class="text-bold">Рыночная стоимость: {{ res_calc.price_m }}₽</div>
-                        <div class="text-caption">За кв.м. (с НДС)</div>
+        <div style="margin: 16px 34px">
+            <div class="text-bold text-h8 q-mb-sm">Итоговый расчёт стоимости эталона</div>
+            <q-card>
+                <q-card-section class="q-pa-lg">
+                    <div class="flex">
+                        <div class="q-mr-lg">
+                            <div>
+                                <span class="text-bold">Рыночная стоимость:</span> {{ res_calc.price_m.toLocaleString('ru') }} ₽
+                            </div>
+                            <div class="text-caption">За кв.м. (с НДС)</div>
+                        </div>
+                        <div>
+                            <div>
+                                <span class="text-bold">Рыночная стоимость:</span> {{ res_calc.price.toLocaleString('ru') }} ₽
+                            </div>
+                            <div class="text-caption">(с НДС)</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-bold">Рыночная стоимость: {{ res_calc.price }}₽</div>
-                        <div class="text-caption">(с НДС)</div>
+                    <div class="q-mt-md">
+                        <q-btn label="Рассчитать для всех объектов" color="primary" unelevated @click="revealResults()"/>
+                        <q-btn label="Выгрузить расчёт эталона .csv" no-caps class="q-ml-sm" color="primary" flat @click="exportToCSV()"/>
                     </div>
-                </div>
-                <div class="q-mt-md">
-                    <q-btn label="Рассчитать для всех объектов" color="primary" unelevated @click="revealResults()"/>
-                </div>
-            </q-card-section>
-        </q-card>
+                </q-card-section>
+            </q-card>
 
-        <div class="text-bold text-h8 q-mb-sm q-mt-lg">Объекты сравнения</div>
+            <div class="text-bold text-h8 q-mb-sm q-mt-lg">Объекты сравнения</div>
+            <q-table
+                :rows="extend_objects_table.rows"
+                :columns="extend_objects_table.columns"
+                row-key="name"
+                wrap-cells
+                :rows-per-page-options="[0]"
+                hide-bottom
+                :card-style="{ padding: '14px 20px' }"
+            />
 
-        <q-table
-            :rows="extend_objects_table.rows"
-            :columns="extend_objects_table.columns"
-            row-key="name"
-            :rows-per-page-options="[]"
-        >
-            <template v-slot:top-right>
-                <q-btn
-                    color="primary"
-                    icon-right="archive"
-                    label="Выгрузка"
-                    no-caps
-                    flat
-                    @click="exportTable(analogs, columns_comparation_analogs)"
-                />
-            </template>
-        </q-table>
+            <div class="text-bold text-h8 q-mb-sm q-mt-lg">Корректирующие коэффициенты аналогов</div>
+            <q-table
+                :rows="coef_table.rows"
+                :columns="coef_table.columns"
+                row-key="Название"
+                :rows-per-page-options="[0]"
+                hide-bottom
+                :card-style="{ padding: '14px 20px' }"
+            >
+                <template v-slot:body-cell-delete="props">
+                    <q-td :props="props">
+                        <div>
+                            <q-btn flat round color="primary" icon="remove_circle_outline" @click="disableCoof(props.row[0])"/>
+                        </div>
+                    </q-td>
+                </template>
+            </q-table>
 
-        <div class="text-bold text-h8 q-mb-sm q-mt-lg">Корректирующие коэффициенты аналогов</div>
-        <q-table
-            :rows="coef_table.rows"
-            :columns="coef_table.columns"
-            row-key="Название"
-            :rows-per-page-options="[10]"
-        >
-            <template v-slot:top-right>
-                <q-btn
-                    color="primary"
-                    icon-right="archive"
-                    label="Выгрузка"
-                    no-caps
-                    flat
-                    @click="exportTable(coef_table.rows, coef_table.columns)"
-                />
-            </template>
-            <template v-slot:body-cell-delete="props">
-                <q-td :props="props">
-                    <div>
-                        <q-btn flat round color="primary" icon="remove_circle_outline" @click="disableCoof(props.row[0])"/>
-                    </div>
-                </q-td>
-            </template>
-        </q-table>
-
-        <div class="text-bold text-h8 q-mb-sm q-mt-lg">Вес корректировок</div>
-        <q-table
-            :rows="extend_coef_table.rows"
-            :columns="extend_coef_table.columns"
-            :rows-per-page-options="[]"
-        />
+            <div class="text-bold text-h8 q-mb-sm q-mt-lg">Вес корректировок</div>
+            <q-table
+                :rows="extend_coef_table.rows"
+                :columns="extend_coef_table.columns"
+                :rows-per-page-options="[0]"
+                hide-bottom
+                :card-style="{ padding: '14px 20px' }"
+            />
+        </div>
     </div>
 </template>
 
@@ -103,14 +94,14 @@ export default {
                 {
                     name: 'ПлощадьКвартиры',
                     required: true,
-                    label: 'Площадь Квартиры',
+                    label: 'Площадь квартиры',
                     align: 'left',
                     field: row => row.ПлощадьКвартиры,
                 },
                 {
                     name: 'ПлощадьКухни',
                     required: true,
-                    label: 'Площадь Кухни',
+                    label: 'Площадь кухни',
                     align: 'left',
                     field: row => row.ПлощадьКухни,
                 },
@@ -126,7 +117,7 @@ export default {
                     required: true,
                     label: 'Сегмент',
                     align: 'left',
-                    format: val => `${val.toLowerCase()}`,
+                    format: val => `${this.capitalizeFirstLetter(val)}`,
                     field: row => row.Сегмент,
                 },
                 {
@@ -148,13 +139,14 @@ export default {
                     required: true,
                     label: 'Материал стен',
                     align: 'left',
+                    format: val => `${this.capitalizeFirstLetter(val)}`,
                     field: row => row.МатериалСтен,
                 },
                 {
                     name: 'НаличиеБалконаЛоджии',
                     required: true,
                     label: 'Наличие балкона/лоджии',
-                    format: val => `${val === 1 ? "да" : "нет"}`,
+                    format: val => `${val === 1 ? "Да" : "Нет"}`,
                     align: 'left',
                     field: row => row.НаличиеБалконаЛоджии,
                 },
@@ -170,17 +162,26 @@ export default {
                     required: true,
                     label: 'Состояние',
                     align: 'left',
-                    format: val => `${val.toLowerCase()}`,
+                    format: val => `${this.capitalizeFirstLetter(val)}`,
                     field: row => row.Состояние,
                 },
                 {
                     name: 'Стоимость',
                     required: true,
-                    label: 'Стоимость (р.)',
+                    label: 'Стоимость (с НДС)',
                     align: 'left',
+                    format: val => `${Number(val).toLocaleString('ru')} ₽`,
                     field: row => row.Стоимость,
+                    style: 'width: 140px',
                 },
-
+                {
+                    name: 'Стоимость_м',
+                    required: true,
+                    label: 'Стоимость за кв. м. (с НДС)',
+                    align: 'left',
+                    format: val => `${Number(val).toLocaleString('ru')} ₽`,
+                    field: row => row.Стоимость_м,
+                },
             ],
             coef_table: null,
 
@@ -192,6 +193,10 @@ export default {
         }
     },
     methods: {
+        capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        },
+
         revealResults() {
             this.$q.loading.show({
                 spinner: QSpinnerFacebook,
@@ -257,30 +262,30 @@ export default {
                 })
         },
 
-        wrapCsvValue(val, formatFn, row) {
-            let formatted = formatFn !== void 0
-                ? formatFn(val, row)
-                : val
+        exportToCSV() {
+            let wrapCsvValue = function (val, formatFn, row) {
+                let formatted = formatFn !== void 0
+                    ? formatFn(val, row)
+                    : val
 
-            formatted = formatted === void 0 || formatted === null
-                ? ''
-                : String(formatted)
+                formatted = formatted === void 0 || formatted === null
+                    ? ''
+                    : String(formatted)
 
-            formatted = formatted.split('"').join('""')
-            /**
-             * Excel accepts \n and \r in strings, but some other CSV parsers do not
-             * Uncomment the next two lines to escape new lines
-             */
-            // .split('\n').join('\\n')
-            // .split('\r').join('\\r')
+                formatted = formatted.split('"').join('""')
+                /**
+                 * Excel accepts \n and \r in strings, but some other CSV parsers do not
+                 * Uncomment the next two lines to escape new lines
+                 */
+                // .split('\n').join('\\n')
+                // .split('\r').join('\\r')
 
-            return `"${formatted}"`
-        },
+                return `"${formatted}"`
+            }
 
-        exportTable(rows, columns) {
-            // naive encoding to csv format
-            const content = [columns.map(col => this.wrapCsvValue(col.label))].concat(
-                rows.map(row => columns.map(col => this.wrapCsvValue(
+            let [rows1, columns1] = [this.extend_objects_table.rows, this.extend_objects_table.columns]
+            const content1 = [columns1.map(col => wrapCsvValue(col.label))].concat(
+                rows1.map(row => columns1.map(col => wrapCsvValue(
                     typeof col.field === 'function'
                         ? col.field(row)
                         : row[col.field === void 0 ? col.name : col.field],
@@ -289,21 +294,30 @@ export default {
                 )).join(','))
             ).join('\r\n')
 
-            const status = exportFile(
-                'table-export.csv',
-                "ufeff" + content,
-                'text/csv'
-            )
+            let [rows2, columns2] = [this.coef_table.rows, this.coef_table.columns]
+            const content2 = [columns2.map(col => wrapCsvValue(col.label))].concat(
+                rows2.map(row => columns2.map(col => wrapCsvValue(
+                    typeof col.field === 'function'
+                        ? col.field(row)
+                        : row[col.field === void 0 ? col.name : col.field],
+                    col.format,
+                    row
+                )).join(','))
+            ).join('\r\n')
 
-            if (status !== true) {
-                $q.notify({
-                    message: 'Browser denied file download...',
-                    color: 'negative',
-                    icon: 'warning'
-                })
-            }
+            let [rows3, columns3] = [this.extend_coef_table.rows, this.extend_coef_table.columns]
+            const content3 = [columns3.map(col => wrapCsvValue(col.label))].concat(
+                rows3.map(row => columns3.map(col => wrapCsvValue(
+                    typeof col.field === 'function'
+                        ? col.field(row)
+                        : row[col.field === void 0 ? col.name : col.field],
+                    col.format,
+                    row
+                )).join(','))
+            ).join('\r\n')
+
+            const status = exportFile('Выгрузка_по_расчёту.csv', '\n' + "ufeff" + content1 + '\n\n\n\n' + content2 + '\n\n\n\n' + content3, 'text/csv')
         },
-
 
         calc(object, analogs, settings) {
             return calc_func.findEtalonPrice(object, analogs, settings);
@@ -400,12 +414,14 @@ export default {
             row.Сегмент = store.getters.nameOfSegmentById(row.Сегмент).toLowerCase();
             row.МатериалСтен = store.getters.nameOfWallById(row.МатериалСтен).toLowerCase();
             row.Стоимость = this.res_calc.price;
+            row.Стоимость_м = this.res_calc.price_m;
             rows.push(row);
 
             // Формируем строки
             this.analogs.forEach((meta_table, index) => {
                 let row = meta_table;
-                row[0] = 'Аналог ' + (index +1);
+                row.Стоимость_м = Math.floor(row.Стоимость / row.ПлощадьКвартиры);
+                row[0] = 'Аналог ' + (index + 1);
                 rows.push(row)
             });
 

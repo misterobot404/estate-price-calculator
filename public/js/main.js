@@ -17986,21 +17986,32 @@ __webpack_require__.r(__webpack_exports__);
           response.data.data.analogs.forEach(function (el) {
             distance_res.push(ymaps.coordSystem.geo.getDistance([_this.selected_object.coordx, _this.selected_object.coordy], [el.coordx, el.coordy]));
           });
-
-          // Определяем, какое минимальное расстояние нам нужно взять для расчётов
-          if (distance_res.filter(function (el) {
-            return el <= 1000;
-          }).length >= 3) {
-            max_distance = 1000;
-          } else if (distance_res.filter(function (el) {
-            return el <= 1500;
-          }).length >= 3) {
+          if (!_this.$route.query.max_distance) {
+            // Определяем, какое минимальное расстояние нам нужно взять для расчётов
+            if (distance_res.filter(function (el) {
+              return el <= 1000;
+            }).length >= 3) {
+              max_distance = 1000;
+            } else if (distance_res.filter(function (el) {
+              return el <= 1500;
+            }).length >= 3) {
+              max_distance = 1500;
+            } else if (distance_res.filter(function (el) {
+              return el <= 2000;
+            }).length >= 3) {
+              max_distance = 2000;
+            } else if (distance_res.filter(function (el) {
+              return el <= 2500;
+            }).length >= 3) {
+              max_distance = 2500;
+            } else if (distance_res.filter(function (el) {
+              return el <= 3000;
+            }).length >= 3) {
+              max_distance = 3000;
+            } else max_distance = 5000;
+          } else {
             max_distance = 1500;
-          } else if (distance_res.filter(function (el) {
-            return el <= 3000;
-          }).length >= 3) {
-            max_distance = 3000;
-          } else max_distance = 5000;
+          }
           var local_id = 0;
           response.data.data.analogs.forEach(function (el) {
             var dist = ymaps.coordSystem.geo.getDistance([_this.selected_object.coordx, _this.selected_object.coordy], [el.coordx, el.coordy]);
@@ -18009,10 +18020,41 @@ __webpack_require__.r(__webpack_exports__);
               _this.analogs.push(el);
             }
           });
-          if (max_distance === 3000 || max_distance === 5000) {
+          if (max_distance > 1500) {
             _this.$q.notify({
               message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
-              icon: 'announcement'
+              icon: 'announcement',
+              color: 'primary',
+              timeout: 0,
+              actions: [{
+                label: 'Понятно',
+                color: 'white',
+                handler: function handler() {}
+              }, {
+                label: 'Не увеличивать расстояние',
+                color: 'white',
+                handler: function handler() {
+                  window.location.replace(_this.$route.path + "?max_distance=1500");
+                }
+              }]
+            });
+          } else if (_this.$route.query.max_distance) {
+            _this.$q.notify({
+              message: 'Расстояние для поиска аналогов составляет ' + max_distance + ' метров',
+              icon: 'announcement',
+              color: 'primary',
+              timeout: 0,
+              actions: [{
+                label: 'Понятно',
+                color: 'white',
+                handler: function handler() {}
+              }, {
+                label: 'Изменить на оптимальное расстояние',
+                color: 'white',
+                handler: function handler() {
+                  window.location.replace(_this.$route.path);
+                }
+              }]
             });
           }
           _this.data_loading = false;
@@ -18135,6 +18177,7 @@ __webpack_require__.r(__webpack_exports__);
   },
   computed: {
     page: function page() {
+      // Первичная загрузка так же происходит отсюда
       this.loadData();
       if (this.$route.params.object_id) {
         return "object";
@@ -18146,7 +18189,6 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   beforeMount: function beforeMount() {
-    this.loadData();
     var settings = {
       apiKey: '253b2eae-b322-4893-a57c-3d63323b3558',
       // Индивидуальный ключ API
@@ -18181,11 +18223,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 /* harmony import */ var quasar__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! quasar */ "./node_modules/quasar/dist/quasar.esm.prod.js");
 /* harmony import */ var _plugins_calculator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../plugins/calculator */ "./resources/js/plugins/calculator.js");
+/* harmony import */ var _plugins_store__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../plugins/store */ "./resources/js/plugins/store.js");
+
 
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   data: function data() {
+    var _this = this;
     return {
       object: null,
       analogs: [],
@@ -18197,6 +18242,22 @@ __webpack_require__.r(__webpack_exports__);
         align: 'left',
         field: function field(row) {
           return row.Местоположение;
+        }
+      }, {
+        name: 'ПлощадьКвартиры',
+        required: true,
+        label: 'Площадь квартиры',
+        align: 'left',
+        field: function field(row) {
+          return row.ПлощадьКвартиры;
+        }
+      }, {
+        name: 'ПлощадьКухни',
+        required: true,
+        label: 'Площадь кухни',
+        align: 'left',
+        field: function field(row) {
+          return row.ПлощадьКухни;
         }
       }, {
         name: 'КоличествоКомнат',
@@ -18212,7 +18273,7 @@ __webpack_require__.r(__webpack_exports__);
         label: 'Сегмент',
         align: 'left',
         format: function format(val) {
-          return "".concat(val.toLowerCase());
+          return "".concat(_this.capitalizeFirstLetter(val));
         },
         field: function field(row) {
           return row.Сегмент;
@@ -18238,6 +18299,9 @@ __webpack_require__.r(__webpack_exports__);
         required: true,
         label: 'Материал стен',
         align: 'left',
+        format: function format(val) {
+          return "".concat(_this.capitalizeFirstLetter(val));
+        },
         field: function field(row) {
           return row.МатериалСтен;
         }
@@ -18246,7 +18310,7 @@ __webpack_require__.r(__webpack_exports__);
         required: true,
         label: 'Наличие балкона/лоджии',
         format: function format(val) {
-          return "".concat(val === 1 ? "да" : "нет");
+          return "".concat(val === 1 ? "Да" : "Нет");
         },
         align: 'left',
         field: function field(row) {
@@ -18266,7 +18330,7 @@ __webpack_require__.r(__webpack_exports__);
         label: 'Состояние',
         align: 'left',
         format: function format(val) {
-          return "".concat(val.toLowerCase());
+          return "".concat(_this.capitalizeFirstLetter(val));
         },
         field: function field(row) {
           return row.Состояние;
@@ -18274,10 +18338,25 @@ __webpack_require__.r(__webpack_exports__);
       }, {
         name: 'Стоимость',
         required: true,
-        label: 'Стоимость (р.)',
+        label: 'Стоимость (с НДС)',
         align: 'left',
+        format: function format(val) {
+          return "".concat(Number(val).toLocaleString('ru'), " \u20BD");
+        },
         field: function field(row) {
           return row.Стоимость;
+        },
+        style: 'width: 140px'
+      }, {
+        name: 'Стоимость_м',
+        required: true,
+        label: 'Стоимость за кв. м. (с НДС)',
+        align: 'left',
+        format: function format(val) {
+          return "".concat(Number(val).toLocaleString('ru'), " \u20BD");
+        },
+        field: function field(row) {
+          return row.Стоимость_м;
         }
       }],
       coef_table: null,
@@ -18288,8 +18367,11 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   methods: {
+    capitalizeFirstLetter: function capitalizeFirstLetter(string) {
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    },
     revealResults: function revealResults() {
-      var _this = this;
+      var _this2 = this;
       this.$q.loading.show({
         spinner: quasar__WEBPACK_IMPORTED_MODULE_1__.QSpinnerFacebook,
         spinnerSize: 120,
@@ -18298,18 +18380,18 @@ __webpack_require__.r(__webpack_exports__);
       });
       axios__WEBPACK_IMPORTED_MODULE_0__["default"].get('/api/pools/' + this.object.Пул).then(function (response) {
         // Получаю все объекты в пуле, кроме эталонного
-        _this.objects_of_pool = response.data.data.objects.filter(function (el) {
-          return el.id !== _this.object.id;
+        _this2.objects_of_pool = response.data.data.objects.filter(function (el) {
+          return el.id !== _this2.object.id;
         });
 
         // Общая информация для таблицы Операции
         var operation_meta = {
           // Пул ID
-          pool_id: _this.object.Пул,
+          pool_id: _this2.object.Пул,
           // Эталон
-          object_id: _this.object.id,
+          object_id: _this2.object.id,
           // Коэффициенты - Объект Settings
-          coof: _this.settings
+          coof: _this2.settings
         };
 
         // Информация для таблицы Операция_ОцениваемаяНедвижимость
@@ -18317,16 +18399,16 @@ __webpack_require__.r(__webpack_exports__);
         // Заносим эталон
         var operations = [{
           // Оцениваемый объект. Тут Операция_ОцениваемаяНедвижимость.ОцениваемыйОбъект = Операции.Эталон
-          object_id: _this.object.id,
+          object_id: _this2.object.id,
           // Стоимость
-          price_m: _this.res_calc.price_m
+          price_m: _this2.res_calc.price_m
         }];
-        _this.object.Стоимость = _this.res_calc.price;
+        _this2.object.Стоимость = _this2.res_calc.price;
 
         // Проходимся по всему массиву объектов в пуле и расчитываем цену
-        _this.objects_of_pool.forEach(function (el) {
+        _this2.objects_of_pool.forEach(function (el) {
           // Объект - элементы в пуле
-          var res_calc = _this.calc(el, [_this.object], _this.settings);
+          var res_calc = _this2.calc(el, [_this2.object], _this2.settings);
           operations.push({
             // Оцениваемый объект. Тут Операция_ОцениваемаяНедвижимость.ОцениваемыйОбъект = Операции.Эталон
             object_id: el.id,
@@ -18338,49 +18420,61 @@ __webpack_require__.r(__webpack_exports__);
           operation_meta: operation_meta,
           operations: operations
         }).then(function (response) {
-          _this.$router.push('/calculator/pools/' + _this.object.Пул);
+          _this2.$router.push('/calculator/pools/' + _this2.object.Пул);
         });
 
         // Необходимо сохранить объект в базу
-        _this.$q.loading.hide();
+        _this2.$q.loading.hide();
       });
     },
-    wrapCsvValue: function wrapCsvValue(val, formatFn, row) {
-      var formatted = formatFn !== void 0 ? formatFn(val, row) : val;
-      formatted = formatted === void 0 || formatted === null ? '' : String(formatted);
-      formatted = formatted.split('"').join('""');
-      /**
-       * Excel accepts \n and \r in strings, but some other CSV parsers do not
-       * Uncomment the next two lines to escape new lines
-       */
-      // .split('\n').join('\\n')
-      // .split('\r').join('\\r')
+    exportToCSV: function exportToCSV() {
+      var wrapCsvValue = function wrapCsvValue(val, formatFn, row) {
+        var formatted = formatFn !== void 0 ? formatFn(val, row) : val;
+        formatted = formatted === void 0 || formatted === null ? '' : String(formatted);
+        formatted = formatted.split('"').join('""');
+        /**
+         * Excel accepts \n and \r in strings, but some other CSV parsers do not
+         * Uncomment the next two lines to escape new lines
+         */
+        // .split('\n').join('\\n')
+        // .split('\r').join('\\r')
 
-      return "\"".concat(formatted, "\"");
-    },
-    exportTable: function exportTable(rows, columns) {
-      var _this2 = this;
-      // naive encoding to csv format
-      var content = [columns.map(function (col) {
-        return _this2.wrapCsvValue(col.label);
-      })].concat(rows.map(function (row) {
-        return columns.map(function (col) {
-          return _this2.wrapCsvValue(typeof col.field === 'function' ? col.field(row) : row[col.field === void 0 ? col.name : col.field], col.format, row);
+        return "\"".concat(formatted, "\"");
+      };
+      var _ref = [this.extend_objects_table.rows, this.extend_objects_table.columns],
+        rows1 = _ref[0],
+        columns1 = _ref[1];
+      var content1 = [columns1.map(function (col) {
+        return wrapCsvValue(col.label);
+      })].concat(rows1.map(function (row) {
+        return columns1.map(function (col) {
+          return wrapCsvValue(typeof col.field === 'function' ? col.field(row) : row[col.field === void 0 ? col.name : col.field], col.format, row);
         }).join(',');
       })).join('\r\n');
-      var status = (0,quasar__WEBPACK_IMPORTED_MODULE_1__.exportFile)('table-export.csv', "ufeff" + content, 'text/csv');
-      if (status !== true) {
-        $q.notify({
-          message: 'Browser denied file download...',
-          color: 'negative',
-          icon: 'warning'
-        });
-      }
+      var _ref2 = [this.coef_table.rows, this.coef_table.columns],
+        rows2 = _ref2[0],
+        columns2 = _ref2[1];
+      var content2 = [columns2.map(function (col) {
+        return wrapCsvValue(col.label);
+      })].concat(rows2.map(function (row) {
+        return columns2.map(function (col) {
+          return wrapCsvValue(typeof col.field === 'function' ? col.field(row) : row[col.field === void 0 ? col.name : col.field], col.format, row);
+        }).join(',');
+      })).join('\r\n');
+      var _ref3 = [this.extend_coef_table.rows, this.extend_coef_table.columns],
+        rows3 = _ref3[0],
+        columns3 = _ref3[1];
+      var content3 = [columns3.map(function (col) {
+        return wrapCsvValue(col.label);
+      })].concat(rows3.map(function (row) {
+        return columns3.map(function (col) {
+          return wrapCsvValue(typeof col.field === 'function' ? col.field(row) : row[col.field === void 0 ? col.name : col.field], col.format, row);
+        }).join(',');
+      })).join('\r\n');
+      var status = (0,quasar__WEBPACK_IMPORTED_MODULE_1__.exportFile)('Выгрузка_по_расчёту.csv', '\n' + "ufeff" + content1 + '\n\n\n\n' + content2 + '\n\n\n\n' + content3, 'text/csv');
     },
     calc: function calc(object, analogs, settings) {
-      return _plugins_calculator__WEBPACK_IMPORTED_MODULE_2__.findEtalonPrice(object, analogs, settings.map(function (el) {
-        return JSON.parse(el.Данные);
-      }));
+      return _plugins_calculator__WEBPACK_IMPORTED_MODULE_2__.findEtalonPrice(object, analogs, settings);
     },
     loadData: function loadData() {
       var _this3 = this;
@@ -18459,6 +18553,45 @@ __webpack_require__.r(__webpack_exports__);
     }
   },
   computed: {
+    extend_objects_table: function extend_objects_table() {
+      var columns = [];
+      var rows = [];
+
+      //Добавляем эталонный объект в начало
+      var row = this.object;
+      row[0] = 'Эталон';
+      row.Состояние = _plugins_store__WEBPACK_IMPORTED_MODULE_3__["default"].getters.nameOfConditionById(row.Состояние).toLowerCase();
+      row.Сегмент = _plugins_store__WEBPACK_IMPORTED_MODULE_3__["default"].getters.nameOfSegmentById(row.Сегмент).toLowerCase();
+      row.МатериалСтен = _plugins_store__WEBPACK_IMPORTED_MODULE_3__["default"].getters.nameOfWallById(row.МатериалСтен).toLowerCase();
+      row.Стоимость = this.res_calc.price;
+      row.Стоимость_м = this.res_calc.price_m;
+      rows.push(row);
+
+      // Формируем строки
+      this.analogs.forEach(function (meta_table, index) {
+        var row = meta_table;
+        row.Стоимость_м = Math.floor(row.Стоимость / row.ПлощадьКвартиры);
+        row[0] = 'Аналог ' + (index + 1);
+        rows.push(row);
+      });
+      columns.push({
+        name: 'ЭлементСравнения',
+        label: 'Элемент сравнения',
+        align: 'left',
+        field: function field(row) {
+          return row[0];
+        }
+      });
+
+      // Заголовки столбцов
+      this.columns_comparation_analogs.forEach(function (el) {
+        columns.push(el);
+      });
+      return {
+        columns: columns,
+        rows: rows
+      };
+    },
     extend_coef_table: function extend_coef_table() {
       var _this5 = this;
       var columns = [];
@@ -19378,6 +19511,14 @@ var _hoisted_60 = {
   "class": "text-bold"
 };
 var _hoisted_61 = ["textContent"];
+var _hoisted_62 = {
+  key: 1,
+  "class": "flex column items-center content-center"
+};
+var _hoisted_63 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+  "class": "q-mt-md"
+}, "Аналоги не найдены", -1 /* HOISTED */);
+
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _$data$selected_analo;
   var _component_YandexMarker = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("YandexMarker");
@@ -19548,7 +19689,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
               src: "/images/object-icon.svg",
               width: "40px",
               "no-spinner": ""
-            })]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_20, [$data.objects_price ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_21, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(Math.floor($data.objects_price[index].Стоимость * object.ПлощадьКвартиры)) + " ₽ ", 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+            })]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_20, [$data.objects_price ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_21, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(Math.floor($data.objects_price[index].Стоимость * object.ПлощадьКвартиры).toLocaleString('ru')) + " ₽ ", 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
               "class": "text-bold",
               textContent: (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(object.Местоположение)
             }, null, 8 /* PROPS */, _hoisted_22), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_23, "Состояние: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(_ctx.$store.getters.nameOfConditionById(object.Состояние).toLowerCase()), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_24, "Площадь квартиры: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(object.ПлощадьКвартиры) + " кв. м.", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_25, "Количество комнат: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(_ctx.$store.getters.nameOfNumberRoomsById(object.КоличествоКомнат)), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_26, "Этаж расположения: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(object.ЭтажРасположения) + " этаж", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_icon, {
@@ -19663,7 +19804,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
               src: "/images/object-icon.svg",
               width: "40px",
               "no-spinner": ""
-            })]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_53, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(selected_analog.Стоимость) + " ₽", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+            })]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_53, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(Number(selected_analog.Стоимость).toLocaleString('ru')) + " ₽", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
               textContent: (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(selected_analog.Местоположение)
             }, null, 8 /* PROPS */, _hoisted_55), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Состояние: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(selected_analog.Состояние.toLowerCase()), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Площадь квартиры: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(selected_analog.ПлощадьКвартиры) + " кв. м.", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Количество комнат: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(selected_analog.КоличествоКомнат), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Этаж расположения: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(selected_analog.ЭтажРасположения) + " этаж", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_icon, {
               name: "more_horiz",
@@ -19707,11 +19848,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
       return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_card_section, null, {
         "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
+          var _$data$analogs;
           return [_hoisted_56, $data.data_loading ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_57, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_spinner_grid, {
             color: "primary",
             size: "2em"
-          })])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+          })])) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
             key: 1
+          }, [(_$data$analogs = $data.analogs) !== null && _$data$analogs !== void 0 && _$data$analogs.length ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+            key: 0
           }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.analogs, function (analog, index) {
             return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", null, [!$data.selected_analogs.find(function (el) {
               return el.id === analog.id;
@@ -19719,7 +19863,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
               src: "/images/object-icon.svg",
               width: "40px",
               "no-spinner": ""
-            })]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_59, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_60, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(analog.Стоимость) + " ₽ ", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+            })]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_59, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_60, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(Number(analog.Стоимость).toLocaleString('ru')) + " ₽ ", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
               textContent: (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(analog.Местоположение)
             }, null, 8 /* PROPS */, _hoisted_61), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Состояние: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(analog.Состояние.toLowerCase()), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Площадь квартиры: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(analog.ПлощадьКвартиры) + " кв. м.", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Количество комнат: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(analog.КоличествоКомнат), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, "Этаж расположения: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(analog.ЭтажРасположения) + " этаж", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_icon, {
               name: "more_horiz",
@@ -19745,7 +19889,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
             }, null, 8 /* PROPS */, ["onClick"]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_separator, {
               "class": "q-mt-md"
             }, null, 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vShow, $data.analogs.length - 1 !== index]])])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)]);
-          }), 256 /* UNKEYED_FRAGMENT */))];
+          }), 256 /* UNKEYED_FRAGMENT */)) : ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_62, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_img, {
+            "class": "q-mt-md",
+            src: "/images/no-data.svg",
+            "no-spinner": "",
+            style: {
+              "max-width": "150px"
+            }
+          }), _hoisted_63]))], 64 /* STABLE_FRAGMENT */))];
         }),
 
         _: 1 /* STABLE */
@@ -19776,48 +19927,52 @@ var _hoisted_1 = {
   "class": "q-pa-lg"
 };
 var _hoisted_2 = {
-  "class": "flex items-center q-mb-md"
+  "class": "flex items-center"
 };
 var _hoisted_3 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
   "class": "q-ml-xs"
-}, "Изменить аналоги", -1 /* HOISTED */);
-var _hoisted_4 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-  "class": "text-h8 q-mb-md"
-}, "Итоговый расчёт эталона", -1 /* HOISTED */);
-var _hoisted_5 = {
+}, "Вернуться к карте", -1 /* HOISTED */);
+var _hoisted_4 = {
+  style: {
+    "margin": "16px 34px"
+  }
+};
+var _hoisted_5 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+  "class": "text-bold text-h8 q-mb-sm"
+}, "Итоговый расчёт стоимости эталона", -1 /* HOISTED */);
+var _hoisted_6 = {
   "class": "flex"
 };
-var _hoisted_6 = {
+var _hoisted_7 = {
   "class": "q-mr-lg"
 };
-var _hoisted_7 = {
+var _hoisted_8 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
   "class": "text-bold"
-};
-var _hoisted_8 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+}, "Рыночная стоимость:", -1 /* HOISTED */);
+var _hoisted_9 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
   "class": "text-caption"
 }, "За кв.м. (с НДС)", -1 /* HOISTED */);
-var _hoisted_9 = {
+var _hoisted_10 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
   "class": "text-bold"
-};
-var _hoisted_10 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+}, "Рыночная стоимость:", -1 /* HOISTED */);
+var _hoisted_11 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
   "class": "text-caption"
 }, "(с НДС)", -1 /* HOISTED */);
-var _hoisted_11 = {
+var _hoisted_12 = {
   "class": "q-mt-md"
 };
-var _hoisted_12 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-  "class": "text-bold text-h8 q-mb-sm q-mt-lg"
-}, "Объекты сравнения", -1 /* HOISTED */);
 var _hoisted_13 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
   "class": "text-bold text-h8 q-mb-sm q-mt-lg"
-}, "Корректирующие коэффициенты аналогов", -1 /* HOISTED */);
+}, "Объекты сравнения", -1 /* HOISTED */);
 var _hoisted_14 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+  "class": "text-bold text-h8 q-mb-sm q-mt-lg"
+}, "Корректирующие коэффициенты аналогов", -1 /* HOISTED */);
+var _hoisted_15 = /*#__PURE__*/(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
   "class": "text-bold text-h8 q-mb-sm q-mt-lg"
 }, "Вес корректировок", -1 /* HOISTED */);
 
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_q_btn = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-btn");
-  var _component_q_separator = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-separator");
   var _component_q_card_section = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-card-section");
   var _component_q_card = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-card");
   var _component_q_table = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("q-table");
@@ -19829,20 +19984,27 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     size: "sm",
     "class": "text-grey-8",
     to: '/calculator/pools/' + $data.object.Пул + '/' + $data.object.id
-  }, null, 8 /* PROPS */, ["to"]), _hoisted_3]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_card, null, {
+  }, null, 8 /* PROPS */, ["to"]), _hoisted_3]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_4, [_hoisted_5, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_card, null, {
     "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
       return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_card_section, {
         "class": "q-pa-lg"
       }, {
         "default": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
-          return [_hoisted_4, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_separator, {
-            "class": "q-my-md"
-          }), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_5, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_6, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_7, "Рыночная стоимость: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.res_calc.price_m) + "₽", 1 /* TEXT */), _hoisted_8]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_9, "Рыночная стоимость: " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.res_calc.price) + "₽", 1 /* TEXT */), _hoisted_10])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_11, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
+          return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_6, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_7, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [_hoisted_8, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)(" " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.res_calc.price_m.toLocaleString('ru')) + " ₽ ", 1 /* TEXT */)]), _hoisted_9]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", null, [_hoisted_10, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createTextVNode)(" " + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.res_calc.price.toLocaleString('ru')) + " ₽ ", 1 /* TEXT */)]), _hoisted_11])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_12, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
             label: "Рассчитать для всех объектов",
             color: "primary",
             unelevated: "",
             onClick: _cache[0] || (_cache[0] = function ($event) {
               return $options.revealResults();
+            })
+          }), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
+            label: "Выгрузить расчёт эталона .csv",
+            "no-caps": "",
+            "class": "q-ml-sm",
+            color: "primary",
+            flat: "",
+            onClick: _cache[1] || (_cache[1] = function ($event) {
+              return $options.exportToCSV();
             })
           })])];
         }),
@@ -19851,43 +20013,26 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
 
     _: 1 /* STABLE */
-  }), _hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_table, {
-    rows: $data.analogs,
-    columns: $data.columns_comparation_analogs,
+  }), _hoisted_13, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_table, {
+    rows: $options.extend_objects_table.rows,
+    columns: $options.extend_objects_table.columns,
     "row-key": "name",
-    "rows-per-page-options": []
-  }, {
-    "top-right": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
-      return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
-        color: "primary",
-        "icon-right": "archive",
-        label: "Выгрузка",
-        "no-caps": "",
-        flat: "",
-        onClick: _cache[1] || (_cache[1] = function ($event) {
-          return $options.exportTable($data.analogs, $data.columns_comparation_analogs);
-        })
-      })];
-    }),
-    _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["rows", "columns"]), _hoisted_13, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_table, {
+    "wrap-cells": "",
+    "rows-per-page-options": [0],
+    "hide-bottom": "",
+    "card-style": {
+      padding: '14px 20px'
+    }
+  }, null, 8 /* PROPS */, ["rows", "columns"]), _hoisted_14, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_table, {
     rows: $data.coef_table.rows,
     columns: $data.coef_table.columns,
     "row-key": "Название",
-    "rows-per-page-options": [10]
+    "rows-per-page-options": [0],
+    "hide-bottom": "",
+    "card-style": {
+      padding: '14px 20px'
+    }
   }, {
-    "top-right": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function () {
-      return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_btn, {
-        color: "primary",
-        "icon-right": "archive",
-        label: "Выгрузка",
-        "no-caps": "",
-        flat: "",
-        onClick: _cache[2] || (_cache[2] = function ($event) {
-          return $options.exportTable($data.coef_table.rows, $data.coef_table.columns);
-        })
-      })];
-    }),
     "body-cell-delete": (0,vue__WEBPACK_IMPORTED_MODULE_0__.withCtx)(function (props) {
       return [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_td, {
         props: props
@@ -19907,11 +20052,15 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       }, 1032 /* PROPS, DYNAMIC_SLOTS */, ["props"])];
     }),
     _: 1 /* STABLE */
-  }, 8 /* PROPS */, ["rows", "columns"]), _hoisted_14, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_table, {
+  }, 8 /* PROPS */, ["rows", "columns"]), _hoisted_15, (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_q_table, {
     rows: $options.extend_coef_table.rows,
     columns: $options.extend_coef_table.columns,
-    "rows-per-page-options": []
-  }, null, 8 /* PROPS */, ["rows", "columns"])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true);
+    "rows-per-page-options": [0],
+    "hide-bottom": "",
+    "card-style": {
+      padding: '14px 20px'
+    }
+  }, null, 8 /* PROPS */, ["rows", "columns"])])])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true);
 }
 
 /***/ }),
@@ -20733,11 +20882,12 @@ var CoefficientsTable = /*#__PURE__*/_createClass(
 // e =>  если задана строка или число в 1 экзкмпляре [3, "Учереждение" и т.п.]
 // c => когда столбец и строка равны 1 и не имеют условий Пример => Кофиициэнт на торг
 
-function CoefficientsTable(table, tableType) {
+function CoefficientsTable(table, tableName, tableType) {
   var _this = this;
-  var rowcolNames = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-  var pharamName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  var rowcolNames = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+  var pharamName = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
   _classCallCheck(this, CoefficientsTable);
+  _defineProperty(this, "tableName", void 0);
   _defineProperty(this, "rowcolNames", void 0);
   _defineProperty(this, "table", void 0);
   _defineProperty(this, "pharamName", void 0);
@@ -20777,6 +20927,7 @@ function CoefficientsTable(table, tableType) {
   this.table = table;
   this.pharamName = pharamName;
   this.tableType = tableType;
+  this.tableName = tableName;
   if (rowcolNames === null) {
     this.rowcolType = 'c';
     this.rowcolNames = rowcolNames;
@@ -20854,7 +21005,7 @@ var checkTax = function checkTax(analogArr, average) {
     var diffTmp = (analogArr[i].priceM - average) / average;
     //Сравниваем разницу с значением в 20%
     if (Math.abs(diffTmp) > diff) {
-      alert("Стоимость аналога " + (i + 1) + " отличается от рыночной на " + diffTmp * 100 + "%. Будет начислен налог!");
+      alert("Стоимость аналога " + (i + 1) + " отличается от рыночной на " + Math.round(diffTmp * 100) + "%. Будет начислен налог!");
     }
     //Вывод разницы для 1 аналога
     analogArr[i].cCalculation.cTax = diffTmp;
@@ -20945,11 +21096,12 @@ var findWeight = function findWeight(analogArr) {
   //Ищем делитель
   var del = 0;
   for (var i = 0; i < analogArr.length; i++) {
-    del += 1 / analogArr[i].cCalculation.cSize;
+    if (analogArr[i].cCalculation.cSize != 0) del += 1 / analogArr[i].cCalculation.cSize;else del += 1;
   }
+  if (del === 0) del = 1;
   //Выполняем поочередное деление размера примененных корректирововк на рассчитаный выше делитель
   for (var _i = 0; _i < analogArr.length; _i++) {
-    analogArr[_i].cCalculation.cWeight = 1 / analogArr[_i].cCalculation.cSize / del;
+    if (analogArr[_i].cCalculation.cSize != 0) analogArr[_i].cCalculation.cWeight = 1 / analogArr[_i].cCalculation.cSize / del;else analogArr[_i].cCalculation.cWeight = 1 / del;
   }
 };
 function parseRenovation(renovation) {
@@ -21003,10 +21155,14 @@ var findEtalonPrice = function findEtalonPrice(reference, analogArr, tables) {
   });
 
   //Преобразование таблиц из json
-  var cTables = tables;
-  console.log(tables);
+  var cNames = tables.map(function (el) {
+    return el.Название;
+  });
+  var cTables = tables.map(function (el) {
+    return JSON.parse(el.Данные);
+  });
   for (var i = 0; i < cTables.length; i++) {
-    cTables[i] = new CoefficientsTable(cTables[i].table, cTables[i].isPercent, cTables[i].rowcolNames, cTables[i].pharamName);
+    cTables[i] = new CoefficientsTable(cTables[i].table, cNames[i], cTables[i].isPercent, cTables[i].rowcolNames, cTables[i].pharamName);
   }
 
   //Приведение к типу этажа используемому при оценке
@@ -21046,12 +21202,11 @@ var findEtalonPrice = function findEtalonPrice(reference, analogArr, tables) {
   };
 
   // analog_changes_table
-  var str = ['Корректировка на торг', 'Корректировка на этаж расположения квартиры', 'Корректировка на площадь квартиры', 'Корректировка на площадь кухни', 'Корректировка на наличие балкона/лоджии', 'Корректировка на состояние отделки', 'Корректировка на расстояние до метро'];
   var _loop = function _loop(_i4) {
     res.analog_changes_table.push({
-      name: str[_i4],
+      name: cTables[_i4].tableName,
       values: class_analog_arr.map(function (el) {
-        return (el.cCalculation.appliedC[_i4].cValue * 100).toFixed(2) + '% (' + Math.floor(el.cCalculation.appliedC[_i4].cPrice) + ' ₽)';
+        return (el.cCalculation.appliedC[_i4].cValue * 100).toFixed(2) + '% (' + Math.floor(el.cCalculation.appliedC[_i4].cPrice).toLocaleString('ru') + ' ₽)';
       })
     });
   };
@@ -23326,7 +23481,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "@font-face {\n  font-family: \"Lato\";\n  font-weight: 400;\n  src: url(\"/fonts/Lato-Regular.ttf\") format(\"truetype\");\n}\n@font-face {\n  font-family: \"Lato\";\n  font-weight: 500;\n  src: url(\"/fonts/Lato-Medium.ttf\") format(\"truetype\");\n}\n@font-face {\n  font-family: \"Lato\";\n  font-weight: 600;\n  src: url(\"/fonts/Lato-Bold.ttf\") format(\"truetype\");\n}\nbody {\n  font-family: \"Lato\", \"Roboto\", sans-serif;\n  background-color: #FAFAFA;\n}\n.text-h7 {\n  font-size: 18px;\n  font-weight: 500;\n  line-height: 1.85rem;\n  letter-spacing: 0.0125em;\n}\n.text-h8 {\n  font-size: 16px;\n  font-weight: 500;\n  line-height: 1.7rem;\n  letter-spacing: 0.0125em;\n}\n.text-small {\n  font-size: 14px;\n}\n.v-enter-active,\n.v-leave-active {\n  transition: opacity 0.2s ease;\n}\n.v-enter-from,\n.v-leave-to {\n  opacity: 0;\n}\n.btn-background-primary {\n  background-color: #e9f1f9;\n}", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "@font-face {\n  font-family: \"Lato\";\n  font-weight: 400;\n  src: url(\"/fonts/Lato-Regular.ttf\") format(\"truetype\");\n}\n@font-face {\n  font-family: \"Lato\";\n  font-weight: 500;\n  src: url(\"/fonts/Lato-Medium.ttf\") format(\"truetype\");\n}\n@font-face {\n  font-family: \"Lato\";\n  font-weight: 600;\n  src: url(\"/fonts/Lato-Bold.ttf\") format(\"truetype\");\n}\nbody {\n  font-family: \"Lato\", \"Roboto\", sans-serif;\n  background-color: #FAFAFA;\n}\n.text-h7 {\n  font-size: 18px;\n  font-weight: 500;\n  line-height: 1.85rem;\n  letter-spacing: 0.0125em;\n}\n.text-h8 {\n  font-size: 16px;\n  font-weight: 500;\n  line-height: 1.7rem;\n  letter-spacing: 0.0125em;\n}\n.text-small {\n  font-size: 14px;\n}\n.v-enter-active,\n.v-leave-active {\n  transition: opacity 0.2s ease;\n}\n.v-enter-from,\n.v-leave-to {\n  opacity: 0;\n}\n.btn-background-primary {\n  background-color: #e9f1f9;\n}\n.text-bold {\n  font-weight: 600 !important;\n}", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
