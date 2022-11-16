@@ -5,6 +5,7 @@
             <q-select dense v-model="selected_year" :options="years" filled class="q-mr-md"/>
             <q-select dense v-model="selected_tables_name" :options="['Все справочники', ...tables.map(el => el.Название)]" filled/>
             <q-btn @click="save()" label="Сохранить" class="q-ml-md" no-caps/>
+            <q-btn @click="save()" label="Добавить категорию" flat class="q-ml-md" no-caps/>
         </div>
         <div class="q-mt-lg">
             <div v-for="(table, table_index) in selected_tables" class="q-mt-lg" style="max-width: 1600px">

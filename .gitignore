@@ -1,5 +1,6 @@
 /node_modules
 /public/hot
+/public/excel
 /public/storage
 /vendor
 .env.backup

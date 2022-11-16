@@ -15,6 +15,7 @@ use App\Models\TypeOfWall;
 use App\Models\TypeOfCondition;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -422,5 +423,92 @@ class CalculationController extends Controller
 
 
         return response()->download(public_path('excel/'.$pool->id.'.xlsx'));
+    }
+
+    public function getExcelWithML($user_id)
+    {
+        // Текущая расчитываемая группа
+        $group = Group::where('Пользователь', $user_id)->first();
+
+        // Получаем все пулы этого пользователя
+        $all_pools = Pool::where('Группа', $group->id)->get();
+
+        $objects = [];
+
+        // Перебираем все пулы
+        foreach ($all_pools as $pool) {
+            // Проверяем есть ли операция по этому пуллу, если есть с кодом 4, не добавляем в результирующий массив
+            $pools_calc_4 = Operation::where('Пул', $pool->id)->where(['Статус' => 4])->first();
+            if (!$pools_calc_4) {
+                foreach (ObjectOfPool::where('Пул', $pool->id)->get() as $object) {
+                    $objects[] = $object;
+                }
+            }
+        }
+
+        $res_values = [];
+        // Для каждого элемента получаем цену из нейронной сети
+        foreach ($objects as &$object) {
+            $response = Http::post('http://127.0.0.1:5000/price', [
+                0 => [
+                    "coordx" => (float)$object['coordx'],
+                    "coordy" => (float)$object['coordy'],
+                    "КоличествоКомнат" => $object['КоличествоКомнат'],
+                    "Сегмент" => $object['Сегмент'],
+                    "ЭтажностьДома" => $object['ЭтажностьДома'],
+                    "МатериалСтен" => $object['МатериалСтен'],
+                    "ЭтажРасположения" => $object['ЭтажРасположения'],
+                    "ПлощадьКвартиры" => (int)$object['ПлощадьКвартиры'],
+                    "ПлощадьКухни" => (int)$object['ПлощадьКухни'],
+                    "НаличиеБалконаЛоджии" => $object['НаличиеБалконаЛоджии'],
+                    "МетроМин" => (int)$object['МетроМин'],
+                    "Состояние" => $object['Состояние']
+                ]
+            ]);
+            $res_values[] = json_decode($response->body())[0];
+        }
+
+        // Создаём структуру
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'Местоположение');
+        $sheet->setCellValue('B1', 'Количество комнат');
+        $sheet->setCellValue('C1', 'Сегмент');
+        $sheet->setCellValue('D1', 'Этажность дома');
+        $sheet->setCellValue('E1', 'Материал стен');
+        $sheet->setCellValue('F1', 'Этаж расположения');
+        $sheet->setCellValue('G1', 'Площадь квартиры, кв.м');
+        $sheet->setCellValue('H1', 'Площадь кухни, кв.м');
+        $sheet->setCellValue('I1', 'Наличие балкона/лоджии');
+        $sheet->setCellValue('J1', 'Удаленность от станции метро, мин. пешком');
+        $sheet->setCellValue('K1', 'Состояние');
+        $sheet->setCellValue('L1', 'Рассчитанная стоимость');
+        $sheet->setCellValue('M1', 'Рассчитанная стоимость за метр');
+
+        $i = 2; // Начинаем с двойки, нумерации в таблице идёт с 1-цы
+        foreach ($objects as $key => $row) {
+            $sheet->setCellValue('A'.$i, $row['Местоположение']);
+            $sheet->setCellValue('B'.$i, (TypeOfNumberRooms::where('id', $row['КоличествоКомнат'])->first())['Название']);
+            $sheet->setCellValue('C'.$i, (TypeOfSegment::where('id', $row['Сегмент'])->first())['Название']);
+            $sheet->setCellValue('D'.$i, $row['ЭтажностьДома']);
+            $sheet->setCellValue('E'.$i, (TypeOfWall::where('id', $row['МатериалСтен'])->first())['Название']);
+            $sheet->setCellValue('F'.$i, $row['ЭтажРасположения']);
+            $sheet->setCellValue('G'.$i, $row['ПлощадьКвартиры']);
+            $sheet->setCellValue('H'.$i, $row['ПлощадьКухни']);
+            $sheet->setCellValue('I'.$i, $row['НаличиеБалконаЛоджии']);
+            $sheet->setCellValue('J'.$i, $row['МетроМин']);
+            $sheet->setCellValue('K'.$i, (TypeOfCondition::where('id', $row['Состояние'])->first())['Название']);
+            $sheet->setCellValue('L'.$i, $res_values[$key]);
+            $sheet->setCellValue('M'.$i, (int)($res_values[$key] / $row['ПлощадьКвартиры']));
+            $i++;
+        }
+
+        $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(20);
+        $writer = new Xlsx($spreadsheet);
+        $file_name = "Нейронная сеть";
+        $writer->save('excel/'.$file_name.'.xlsx');
+
+        return response()->download(public_path('excel/'.$file_name.'.xlsx'));
     }
 }
