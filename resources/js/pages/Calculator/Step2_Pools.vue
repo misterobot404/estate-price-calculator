@@ -353,29 +353,30 @@ export default {
                         this.analogs = [];
                         let max_distance = 0;
 
-                        response.data.data.analogs.forEach(el => {
-                            distance_res.push(ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]))
-                        })
+                        this.map.then(() => {
+                            response.data.data.analogs.forEach(el => {
+                                distance_res.push(ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]))
+                            })
 
-                        if (!this.$route.query.max_distance) {
-                            // Определяем, какое минимальное расстояние нам нужно взять для расчётов
-                            if (distance_res.filter(el => el <= 1000).length >= 3) {
-                                max_distance = 1000;
-                            } else if (distance_res.filter(el => el <= 1500).length >= 3) {
+                            if (!this.$route.query.max_distance) {
+                                // Определяем, какое минимальное расстояние нам нужно взять для расчётов
+                                if (distance_res.filter(el => el <= 1000).length >= 3) {
+                                    max_distance = 1000;
+                                } else if (distance_res.filter(el => el <= 1500).length >= 3) {
+                                    max_distance = 1500;
+                                } else if (distance_res.filter(el => el <= 2000).length >= 3) {
+                                    max_distance = 2000;
+                                } else if (distance_res.filter(el => el <= 2500).length >= 3) {
+                                    max_distance = 2500;
+                                } else if (distance_res.filter(el => el <= 3000).length >= 3) {
+                                    max_distance = 3000;
+                                } else max_distance = 5000;
+                            } else {
                                 max_distance = 1500;
-                            } else if (distance_res.filter(el => el <= 2000).length >= 3) {
-                                max_distance = 2000;
-                            } else if (distance_res.filter(el => el <= 2500).length >= 3) {
-                                max_distance = 2500;
-                            } else if (distance_res.filter(el => el <= 3000).length >= 3) {
-                                max_distance = 3000;
-                            } else max_distance = 5000;
-                        } else {
-                            max_distance = 1500;
-                        }
+                            }
 
-                        let local_id = 0;
-                        setTimeout(() => {
+                            let local_id = 0;
+
                             response.data.data.analogs.forEach(el => {
                                 let dist = ymaps.coordSystem.geo.getDistance([this.selected_object.coordx, this.selected_object.coordy], [el.coordx, el.coordy]);
 
@@ -384,59 +385,58 @@ export default {
                                     this.analogs.push(el);
                                 }
                             })
-                        }, 300)
 
-                        // Сортировка аналогов по количеству соответствующих признаков
-                        this.sortAnalogs();
+                            // Сортировка аналогов по количеству соответствующих признаков
+                            this.sortAnalogs();
 
-                        if (max_distance > 1500) {
-                            this.dismiss_notify();
-                            this.dismiss_notify = this.$q.notify({
-                                message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
-                                icon: 'straighten',
-                                timeout: 0,
-                                actions: [
-                                    {
-                                        label: 'Не увеличивать расстояние', color: 'grey-5', handler: () => {
-                                            window.location.replace(this.$route.path + "?max_distance=1500");
-                                        }
-                                    },
-                                    {label: 'Понятно', color: 'white', handler: () => {}}
-                                ]
-                            })
-                        } else if (this.$route.query.max_distance) {
-                            this.dismiss_notify();
-                            this.dismiss_notify = this.$q.notify({
-                                message: 'Расстояние для поиска аналогов составляет ' + max_distance + ' метров',
-                                icon: 'straighten',
-                                timeout: 0,
-                                actions: [
-                                    {
-                                        label: 'Изменить на оптимальное расстояние', color: 'grey-5', handler: () => {
-                                            window.location.replace(this.$route.path);
-                                        }
-                                    },
-                                    {label: 'Понятно', color: 'white', handler: () => {}}
-                                ]
-                            })
-                        }
-
-                        // Выбор первых пяти наиболее релевантных аналогов по умолчанию
-                        if (this.analogs.length < 3) {
-                            this.$q.notify({message: 'Количество подобранных аналогов недостаточно для расчёта', icon: 'announcement'})
-                        } else {
-                            this.map.then(() => {
-                                this.analogs.every((el, index) => {
-                                    if (index > 4) {
-                                        return false;
-                                    }
-                                    this.selectAnalog(this.analogs[index].id);
-                                    return true;
+                            if (max_distance > 1500) {
+                                this.dismiss_notify();
+                                this.dismiss_notify = this.$q.notify({
+                                    message: 'Минимальное расстояние для поиска аналогов увеличено до ' + max_distance + ' метров',
+                                    icon: 'straighten',
+                                    timeout: 0,
+                                    actions: [
+                                        {
+                                            label: 'Не увеличивать расстояние', color: 'grey-5', handler: () => {
+                                                window.location.replace(this.$route.path + "?max_distance=1500");
+                                            }
+                                        },
+                                        {label: 'Понятно', color: 'white', handler: () => {}}
+                                    ]
                                 })
-                            });
-                        }
+                            } else if (this.$route.query.max_distance) {
+                                this.dismiss_notify();
+                                this.dismiss_notify = this.$q.notify({
+                                    message: 'Расстояние для поиска аналогов составляет ' + max_distance + ' метров',
+                                    icon: 'straighten',
+                                    timeout: 0,
+                                    actions: [
+                                        {
+                                            label: 'Изменить на оптимальное расстояние', color: 'grey-5', handler: () => {
+                                                window.location.replace(this.$route.path);
+                                            }
+                                        },
+                                        {label: 'Понятно', color: 'white', handler: () => {}}
+                                    ]
+                                })
+                            }
 
-                        this.data_loading = false;
+                            // Выбор первых пяти наиболее релевантных аналогов по умолчанию
+                            if (this.analogs.length < 3) {
+                                this.$q.notify({message: 'Количество подобранных аналогов недостаточно для расчёта', icon: 'announcement'})
+                            } else {
+                                this.map.then(() => {
+                                    this.analogs.every((el, index) => {
+                                        if (index > 4) {
+                                            return false;
+                                        }
+                                        this.selectAnalog(this.analogs[index].id);
+                                        return true;
+                                    })
+                                });
+                            }
+                            this.data_loading = false;
+                        })
                     })
             }
             // Если текущая страница - pools/pool_id
