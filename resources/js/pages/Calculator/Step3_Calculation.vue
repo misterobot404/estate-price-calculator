@@ -342,24 +342,8 @@ export default {
         },
 
         calc(object, analogs, settings) {
-            let result = calc_func.findEtalonPrice(object, analogs, settings);
-            let path = "/calculator/pools/"+(object.Пул)+"/"+(object.id);
-            this.notifications = [];
-            if(result.errors.length !== 0) {
-                result.errors.forEach((error, index) => {
-                    this.notifications.push(this.$q.notify({
-                        message: error.text,
-                        icon: 'warning',
-                        color: 'primary',
-                        timeout: 0,
-                        actions: [
-                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{}},
-                            {label: 'Ингнорировать', color: 'white', handler: () => {}},
-                        ]
-                    }));
-                })
-            }
-            return result;
+
+            return calc_func.findEtalonPrice(object, analogs, settings);
         },
 
         loadData() {
@@ -379,6 +363,7 @@ export default {
 
                     // Расчитываем
                     this.res_calc = this.calc(this.object, this.analogs, this.settings);
+                    this.showAlert();
                     // Обновляем итоговую таблицу с кор-ми на вывод пользователю
                     this.coef_table = this.setCoefTable();
 
@@ -472,6 +457,26 @@ export default {
             return {
                 columns: columns,
                 rows: rows
+            }
+        },
+        //Вывлд алерта о 20 и 33%
+        showAlert(){
+            //Выводим алерт если нужно
+            let path = "/calculator/pools/"+(this.object.Пул)+"/"+(this.object.id);
+            this.notifications = [];
+            if(this.res_calc.errors.length !== 0) {
+                this.res_calc.errors.forEach((error, index) => {
+                    this.notifications.push(this.$q.notify({
+                        message: error.text,
+                        icon: 'warning',
+                        color: 'primary',
+                        timeout: 0,
+                        actions: [
+                            {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{}},
+                            {label: 'Ингнорировать', color: 'white', handler: () => {}},
+                        ]
+                    }));
+                })
             }
         }
     },
