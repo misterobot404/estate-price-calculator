@@ -469,7 +469,6 @@ export default {
                     this.notifications.push(this.$q.notify({
                         message: error.text,
                         icon: 'warning',
-                        color: 'primary',
                         timeout: 0,
                         actions: [
                             {label: 'Вернуться к выбору аналогов', color: 'white', to: path, handler: () =>{}},
