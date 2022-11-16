@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\CalculationController;
 use App\Http\Controllers\API\SettingController;
+use App\Http\Controllers\API\SettingListController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/signup', [AuthController::class, 'signup']);
@@ -17,8 +18,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/calculation_status', [CalculationController::class, 'getCalculationStatus']);
     Route::get('/reference_books', [CalculationController::class, 'getReferenceBooks']);
     // Settings
-    Route::get('/settings/{year}', [SettingController::class, 'getSettings']);
+    Route::get('/settings/{list_id}', [SettingController::class, 'getSettings']);
     Route::post('/settings', [SettingController::class, 'saveSettings']);
+    // Setting Lists
+    Route::get('/settings_lists', [SettingListController::class, 'getSettingLists']);
 
     // Calculation. Step 1
     Route::post('/parse_file_of_objects', [CalculationController::class, 'parseFileOfObjects']);

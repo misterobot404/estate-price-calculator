@@ -5,14 +5,27 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 
 use App\Models\Setting;
+use App\Models\SettingList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class SettingController extends Controller
+class SettingListController extends Controller
 {
-    public function getSettings($list_id)
+    public function getSettingLists()
+    {
+        // Пулы для этой группы
+        return response()->json([
+            "message" => null,
+            "data" => [
+                "setting_lists" => SettingList::where('user_id', auth()->id())->get()
+            ]
+        ]);
+    }
+
+    // При создании списка настроек необходимо так же создать стандартный набор
+    /*public function createSettingList()
     {
         // Пулы для этой группы
         return response()->json([
@@ -21,9 +34,9 @@ class SettingController extends Controller
                 "settings" => Setting::where('user_id', auth()->id())->where('Год', $year)->get()
             ]
         ]);
-    }
+    }*/
 
-    public function saveSettings()
+    /*public function saveSettingList($list_id)
     {
         $settings = json_decode(request('settings'));
 
@@ -33,6 +46,5 @@ class SettingController extends Controller
 
         // Пулы для этой группы
         return response()->json([], 204);
-    }
-
+    }*/
 }

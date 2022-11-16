@@ -2,7 +2,7 @@
     <div class="q-pa-lg">
         <div class="text-bold text-h7">Настройки оценки:</div>
         <div class="flex q-mt-md">
-            <q-select dense v-model="selected_year" :options="years" filled class="q-mr-md"/>
+            <q-select dense v-model="selected_list" :options="years" filled class="q-mr-md"/>
             <q-select dense v-model="selected_tables_name" :options="['Все справочники', ...tables.map(el => el.Название)]" filled/>
             <q-btn @click="save()" label="Сохранить" class="q-ml-md" no-caps/>
             <q-btn @click="save()" label="Добавить категорию" flat class="q-ml-md" no-caps/>
@@ -46,9 +46,9 @@ import {QSpinnerFacebook} from "quasar";
 export default {
     data() {
         return {
-            selected_year: 2022,
+            selected_list: null,
             selected_tables_name: "Все справочники",
-            years: [2021, 2022],
+            setting_lists: null,
             // Справочники
             tables: [],
             raw_tables: []
@@ -64,7 +64,7 @@ export default {
         }
     },
     methods: {
-        loadConfigsByYear(year) {
+        loadConfigsByListId(year) {
             this.$q.loading.show({
                 spinner: QSpinnerFacebook,
                 spinnerSize: 120,
@@ -72,9 +72,9 @@ export default {
                 spinnerColor: 'primary'
             })
 
-            this.selected_year = year;
+            this.selected_list = year;
 
-            axios.get('/api/settings/' + this.selected_year)
+            axios.get('/api/settings/' + this.selected_list)
                 .then((response) => {
                     let raw_tables = response.data.data.settings
                         .sort((a, b) => {
@@ -169,12 +169,13 @@ export default {
         }
     },
     watch: {
-        selected_year(v) {
-            this.loadConfigsByYear(v)
+        selected_list(v) {
+            this.loadConfigsByListId(v)
         }
     },
     beforeMount() {
-        this.loadConfigsByYear(2022);
+
+        this.loadConfigsByListId(2022);
     }
 }
 </script>
