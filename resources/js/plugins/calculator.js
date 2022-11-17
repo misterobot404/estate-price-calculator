@@ -329,6 +329,7 @@ let findEtalonPrice = (reference, analogArr, tables, chage = null) => {
     })
 
     //Преобразование таблиц из json
+    console.log(tables);
     let cNames = tables.map(el => el.Название);
     let cTables = tables.map(el => JSON.parse(el.Данные));
     for(let i=0;i<cTables.length; i++){
