@@ -63,7 +63,7 @@
                 <q-card-section>
                     <template v-if="page === 'pools'">
                         <div class="flex">
-                            <div class="text-h8">Загруженные категории</div>
+                            <div class="text-h8">Загруженные группы</div>
                             <q-space/>
                             <q-btn flat round icon="tips_and_updates" size="sm" class="text-grey-8 q-mr-sm" :href="'/ml/' + $store.state.user.id" @click="$q.notify({message: 'Нейронная сеть рассчитала цену по всем загруженным квартирам', icon: 'psychology'})">
                                 <q-tooltip>
@@ -102,7 +102,7 @@
                     <template v-else-if="page === 'objects'">
                         <div class="flex items-center">
                             <q-btn flat round icon="arrow_back" size="sm" class="text-grey-8" to="/calculator/pools"/>
-                            <div class="q-ml-xs text-h8">Вернуться к категориям</div>
+                            <div class="q-ml-xs text-h8">Вернуться к группам</div>
                         </div>
                         <q-separator class="q-mt-sm q-mb-lg"/>
                         <template v-if="data_loading">
@@ -143,7 +143,7 @@
                             </div>
                             <div v-if="objects_price">
                                 <q-separator class="q-my-md"/>
-                                <q-btn color="primary" class="full-width" @click="endCalc()">Завершить расчёт пула</q-btn>
+                                <q-btn color="primary" class="full-width" @click="endCalc()">Завершить расчёт группы</q-btn>
                             </div>
                         </template>
                     </template>
