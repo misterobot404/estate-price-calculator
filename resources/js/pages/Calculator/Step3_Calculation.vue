@@ -425,7 +425,7 @@ export default {
                         row.table =this.coef_table.rows[i][key];
                     }
                     else{
-                        row.changes.push(value)
+                        row.changes.push(this.coef_table.rows[i][key])
                     }
 
 
