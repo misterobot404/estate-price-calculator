@@ -62,7 +62,7 @@
                         <q-td v-for="(el, keys) in props.row" :key="keys" :props="props">
                             {{ el }}
                             <q-popup-edit v-model="props.row[keys]" buttons v-slot="scope">
-                                <q-input v-model="scope.value" dense autofocus counter @keyup.enter="this.changeValue(props.key, scope.value, keys)"></q-input>
+                                <q-input v-model="scope.value" dense autofocus counter @keyup.enter="this.changeValue(props, scope.value, keys)"></q-input>
                             </q-popup-edit>
                         </q-td>
                     </q-tr>
@@ -461,10 +461,15 @@ export default {
 
             console.log(table);
             console.log(value);
-            console.log(index);
+
+
+
+            let reg = new RegExp('[0-9]+$');
+            let ind = reg.exec(index)[0]-1;
+            console.log(ind);
             this.changes.forEach((el, key)=>{
                 if(el.table === table){
-                    this.changes[key].change[index]=value;
+                    this.changes[key].change[ind]=value;
                 }
 
             });
