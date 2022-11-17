@@ -263,7 +263,9 @@ export default {
                             // Оцениваемый объект. Тут Операция_ОцениваемаяНедвижимость.ОцениваемыйОбъект = Операции.Эталон
                             object_id: this.object.id,
                             // Стоимость
-                            price_m: this.res_calc.price_m
+                            price_m: this.res_calc.price_m,
+                            res_calc: JSON.stringify(this.res_calc),
+                            analogs: JSON.stringify(this.analogs)
                         }
                     ];
 
@@ -279,7 +281,9 @@ export default {
                                 // Оцениваемый объект. Тут Операция_ОцениваемаяНедвижимость.ОцениваемыйОбъект = Операции.Эталон
                                 object_id: el.id,
                                 // Стоимость
-                                price_m: res_calc.price_m
+                                price_m: res_calc.price_m,
+                                res_calc: JSON.stringify(res_calc),
+                                analogs: JSON.stringify([this.object])
                             }
                         )
                     })
@@ -527,6 +531,7 @@ export default {
             //Добавляем эталонный объект в начало
             let row = Object.assign({}, this.object);
             row[0] = 'Эталон';
+            row.КоличествоКомнат = this.$store.getters.nameOfNumberRoomsById(this.object.КоличествоКомнат).toLowerCase();
             row.Состояние = store.getters.nameOfConditionById(this.object.Состояние).toLowerCase();
             row.Сегмент = store.getters.nameOfSegmentById(this.object.Сегмент).toLowerCase();
             row.МатериалСтен = store.getters.nameOfWallById(this.object.МатериалСтен).toLowerCase();

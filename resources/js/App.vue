@@ -69,7 +69,7 @@
                 </div>
                 <q-tabs align="left" class="text-body q-mt-md" no-caps active-color="primary">
                     <q-route-tab :to="true_to_path_for_calc" label="Оценка недвижимости"/>
-                    <q-route-tab to="/history" label="Отчёты"/>
+                    <q-route-tab :to="true_to_path_for_history" label="Отчёты"/>
                     <q-route-tab to="/settings" label="Настройка"/>
                     <q-route-tab to="/guide" label="Инструкция"/>
                 </q-tabs>
@@ -86,6 +86,7 @@ export default {
     data() {
         return {
             last_calculation_page: "/calculator",
+            last_history_page: "/history",
             dark_mode: false,
             session_no_save: false,
             logout_loading: false,
@@ -127,6 +128,15 @@ export default {
                 return path;
             } else {
                 return this.last_calculation_page;
+            }
+        },
+        true_to_path_for_history() {
+            let path = this.$route.path;
+            if (path.includes("/history/")) {
+                this.last_history_page = path;
+                return path;
+            } else {
+                return this.last_history_page;
             }
         }
     },

@@ -1,5 +1,5 @@
 <template>
-    <div class="q-pa-lg">
+    <div style="padding: 24px 28px">
         <template v-if="tables.length">
             <div class="flex items-center">
                 <div class="text-bold text-h7">Настройки оценки:</div>
@@ -134,6 +134,8 @@ export default {
                             el.Данные = JSON.parse(el.Данные);
                             return el;
                         });
+
+                    this.raw_tables = JSON.parse(JSON.stringify(raw_tables));
 
                     this.tables = this.formatted_tables(raw_tables);
                     this.isLoading = false;

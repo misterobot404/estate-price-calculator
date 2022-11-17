@@ -322,7 +322,9 @@ class CalculationController extends Controller
             OperationEl::create([
                 'Операция' => $operation->id,
                 'ОцениваемыйОбъект' => $value['object_id'],
-                'Стоимость' => $value['price_m']
+                'Стоимость' => $value['price_m'],
+                'res_calc' => $value['res_calc'],
+                'analogs' => $value['analogs']
             ]);
         }
         return response()->json([
@@ -364,6 +366,44 @@ class CalculationController extends Controller
             "message" => null,
             "data" => [
                 "history" => $history,
+            ]
+        ]);
+    }
+
+    public function getHistoryPool($pool_id)
+    {
+        //
+        $pool = Pool::where('id', $pool_id)->first();
+
+        // Получаем все объекты из этого пула
+        $objects = ObjectOfPool::where('Пул', $pool->id)->get();
+
+        // Получаем цену для объектов пула
+        $operation_meta = Operation::where('Пул', $pool->id)->where(['Статус' => 4])->first();
+        $operations_trans = OperationEl::where('Операция', $operation_meta->id)->get();
+
+        // Объекты для этого пула
+        return response()->json([
+            "message" => null,
+            "data" => [
+                "operations_meta" => $operation_meta,
+                "operations_trans" => $operations_trans,
+                "objects" => $objects
+            ]
+        ]);
+    }
+
+    public function getHistoryOperation($operation_obj_id)
+    {
+        $operation_obj = OperationEl::where('ОцениваемыйОбъект', $operation_obj_id)->first();
+        $operation_meta = Operation::where('id', $operation_obj->Операция)->first();
+
+        return response()->json([
+            "message" => null,
+            "data" => [
+                'operation_meta' => $operation_meta,
+                'operation_obj' => $operation_obj,
+                'object' => ObjectOfPool::where('id', $operation_obj_id)->first(),
             ]
         ]);
     }

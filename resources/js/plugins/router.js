@@ -1,5 +1,6 @@
 import {createRouter, createWebHistory} from "vue-router"
 import History from "../pages/History"
+import HistoryPool from "../pages/HistoryPool"
 import Settings from "../pages/Settings"
 import Guide from "../pages/Guide"
 import Signin from "../pages/Signin"
@@ -9,6 +10,7 @@ import Entry from "../pages/Calculator/Entry"
 import Upload from "../pages/Calculator/Step1_Upload"
 import Pools from "../pages/Calculator/Step2_Pools"
 import Calculation from "../pages/Calculator/Step3_Calculation"
+import HistoryOperation from "../pages/HistoryOperation";
 
 const routes = [
     {
@@ -71,6 +73,20 @@ const routes = [
     {
         path: '/history',
         component: History,
+        meta: {
+            middlewareAuth: true,
+        }
+    },
+    {
+        path: '/history/:pool_id',
+        component: HistoryPool,
+        meta: {
+            middlewareAuth: true,
+        }
+    },
+    {
+        path: '/history/operation/:operation_id',
+        component: HistoryOperation,
         meta: {
             middlewareAuth: true,
         }

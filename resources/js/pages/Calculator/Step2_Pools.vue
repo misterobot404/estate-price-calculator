@@ -65,7 +65,7 @@
                         <div class="flex">
                             <div class="text-h8">Загруженные категории</div>
                             <q-space/>
-                            <q-btn flat round icon="tips_and_updates" size="sm" class="text-grey-8 q-mr-sm" :href="'/ml/' + $store.state.user.id" @click="$q.notify({message: 'Нейронная сеть рассчитала цену по всем загруженным квартирам', icon: 'psychology'})">
+                            <q-btn flat round icon="auto_mode" size="sm" class="text-grey-8 q-mr-sm" :href="'/ml/' + $store.state.user.id" @click="$q.notify({message: 'Нейронная сеть рассчитала цену по всем загруженным квартирам', icon: 'psychology'})">
                                 <q-tooltip>
                                     Расчёт с помощью нейронной сети
                                 </q-tooltip>
