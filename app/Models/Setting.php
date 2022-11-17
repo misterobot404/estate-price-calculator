@@ -13,6 +13,6 @@ class Setting extends Model
     protected $table = 'Справочники';
 
     protected $fillable = [
-        'Название', 'Данные'
+        'Название', 'Данные', 'user_id', 'Справочники_списки_id'
     ];
 }

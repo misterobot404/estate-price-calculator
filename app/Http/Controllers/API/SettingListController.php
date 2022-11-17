@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use App\Models\Setting;
 use App\Models\SettingList;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,26 +26,44 @@ class SettingListController extends Controller
     }
 
     // При создании списка настроек необходимо так же создать стандартный набор
-    /*public function createSettingList()
+    public function createSettingList()
     {
+        // Создаём новый список справочников
+        $new_setting_list = SettingList::create([
+            'Название_списка' => request('name'),
+            'user_id' => auth()->id()
+        ]);
+
+        // Смотрим на основе какого списка справочников необходимо создать новый
+        $parent_settings = Setting::where('Справочники_списки_id', request('parent_id'))->get();
+
+        foreach ($parent_settings as $setting) {
+            Setting::create([
+                'Название' => $setting['Название'],
+                'Данные' => $setting['Данные'],
+                'Справочники_списки_id' => $new_setting_list->id,
+                'user_id' => auth()->id()
+            ]);
+        }
+
         // Пулы для этой группы
         return response()->json([
             "message" => null,
             "data" => [
-                "settings" => Setting::where('user_id', auth()->id())->where('Год', $year)->get()
+                "setting_lists" => SettingList::where('user_id', auth()->id())->get()
             ]
         ]);
-    }*/
+    }
 
-    /*public function saveSettingList($list_id)
+    public function deleteSettingList($list_id)
     {
-        $settings = json_decode(request('settings'));
+        SettingList::where('id', $list_id)->delete();
 
-        foreach ($settings as $setting_lc) {
-            Setting::where('id', $setting_lc->id)->update(['Данные' => json_encode($setting_lc->Данные)]);
-        }
-
-        // Пулы для этой группы
-        return response()->json([], 204);
-    }*/
+        return response()->json([
+            "message" => null,
+            "data" => [
+                "setting_lists" => SettingList::where('user_id', auth()->id())->get()
+            ]
+        ]);
+    }
 }

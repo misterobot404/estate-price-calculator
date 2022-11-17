@@ -334,15 +334,12 @@ class CalculationController extends Controller
     public function getOperation($operation_id)
     {
         $operation = Operation::find($operation_id)->orderBy('id', 'desc')->first();
-        // Получаем самый первый список, принадлежащий пользователю
-        $setting_list = SettingList::where('user_id', auth()->id())->orderBy('id', 'desc')->first();
 
         return response()->json([
             "message" => null,
             "data" => [
                 'operation' => $operation,
                 'object' => ObjectOfPool::where('id', $operation['Эталон'])->first(),
-                'settings' => Setting::where('user_id', auth()->id())->where('Справочники_списки_id', $setting_list->id)->get(),
             ]
         ]);
     }

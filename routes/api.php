@@ -20,8 +20,11 @@ Route::middleware('auth:api')->group(function () {
     // Settings
     Route::get('/settings/{list_id}', [SettingController::class, 'getSettings']);
     Route::post('/settings', [SettingController::class, 'saveSettings']);
+
     // Setting Lists
-    Route::get('/settings_lists', [SettingListController::class, 'getSettingLists']);
+    Route::get('/setting_lists', [SettingListController::class, 'getSettingLists']);
+    Route::post('/setting_lists', [SettingListController::class, 'createSettingList']);
+    Route::delete('/setting_lists/{list_id}', [SettingListController::class, 'deleteSettingList']);
 
     // Calculation. Step 1
     Route::post('/parse_file_of_objects', [CalculationController::class, 'parseFileOfObjects']);

@@ -18,7 +18,7 @@ class SettingController extends Controller
         return response()->json([
             "message" => null,
             "data" => [
-                "settings" => Setting::where('user_id', auth()->id())->where('Год', $year)->get()
+                "settings" => Setting::where('user_id', auth()->id())->where('Справочники_списки_id', $list_id)->get()
             ]
         ]);
     }

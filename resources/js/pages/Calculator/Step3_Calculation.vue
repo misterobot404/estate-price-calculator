@@ -45,7 +45,10 @@
                 :card-style="{ padding: '18px 22px' }"
             />
 
-            <div class="text-bold text-h8 q-mb-sm q-mt-lg">Корректирующие коэффициенты аналогов</div>
+            <div class="flex q-mb-sm q-mt-lg items-center">
+                <div class="text-bold text-h8">Корректирующие коэффициенты аналогов</div>
+                <q-select dense v-model="selected_setting_list" :options="setting_lists" option-value="id" option-label="Название_списка" filled class="q-ml-md"/>
+            </div>
             <q-table
                 :rows="coef_table.rows"
                 :columns="coef_table.columns"
@@ -101,6 +104,10 @@ export default {
         return {
             object: null,
             analogs: [],
+
+            setting_lists: [],
+            // Выбранный список кор-ок
+            selected_setting_list: null,
             // Все настройки
             base_settings: [],
             // Настройки (кор-ки), которые применяются в данный момент
@@ -216,6 +223,8 @@ export default {
 
             result_for_mass_reveal: null,
             notifications: [],
+
+            isLoading: false,
         }
     },
     methods: {
@@ -351,28 +360,39 @@ export default {
         },
 
         loadData() {
-            this.$q.loading.show({
-                spinner: QSpinnerFacebook,
-                spinnerSize: 120,
-                backgroundColor: 'grey-4',
-                spinnerColor: 'primary'
-            });
+            this.isLoading = true;
 
             axios.get('/api/get_operation/' + this.$route.params.operation_id)
                 .then((response) => {
                     this.object = response.data.data.object;
                     this.analogs = JSON.parse(response.data.data.operation.Аналоги);
-                    this.settings = response.data.data.settings;
-                    this.base_settings = [...this.settings];
 
-                    // Расчитываем
-                    this.res_calc = this.calc(this.object, this.analogs, this.settings);
-                    this.showAlert();
-                    // Обновляем итоговую таблицу с кор-ми на вывод пользователю
-                    this.coef_table = this.setCoefTable();
+                    axios.get('/api/settings/' + this.selected_setting_list.id)
+                        .then((response) => {
+                            this.settings = response.data.data.settings;
 
-                    this.is_done = true;
-                    this.$q.loading.hide();
+                            this.base_settings = [...this.settings];
+
+                            // Расчитываем
+                            this.res_calc = this.calc(this.object, this.analogs, this.settings);
+                            this.showAlert();
+                            // Обновляем итоговую таблицу с кор-ми на вывод пользователю
+                            this.coef_table = this.setCoefTable();
+
+                            if (this.is_done) {
+                                this.$q.notify({
+                                    icon: "check_circle_outline",
+                                    iconColor: 'green',
+                                    color: 'white',
+                                    textColor: 'black',
+                                    position: 'top',
+                                    message: `Выбранный список корректирующих коэффициентов был изменён. Расчёты обновлены`,
+                                })
+                            }
+
+                            this.is_done = true;
+                            this.isLoading = false;
+                        })
                 })
         },
 
@@ -462,6 +482,7 @@ export default {
                 rows: rows
             }
         },
+
         //Вывлд алерта о 20 и 33%
         showAlert() {
             //Выводим алерт если нужно
@@ -478,7 +499,7 @@ export default {
                             label: 'Ингнорировать', color: 'blue', handler: () => {
                             }
                         },
-                    ], 0, 'warning', 'red', );
+                    ], 0, 'warning', 'red',);
 
                 });
             }
@@ -575,8 +596,31 @@ export default {
             }
         },
     },
+    watch: {
+        selected_setting_list(v) {
+            this.loadData();
+        },
+        isLoading(v) {
+            if (v) {
+                this.$q.loading.show({
+                    spinner: QSpinnerFacebook,
+                    spinnerSize: 120,
+                    backgroundColor: 'grey-4',
+                    spinnerColor: 'primary'
+                })
+            } else {
+                this.$q.loading.hide();
+            }
+        }
+    },
     beforeMount() {
-        this.loadData();
+        this.isLoading = true;
+
+        axios.get("/api/setting_lists")
+            .then((res) => {
+                this.setting_lists = res.data.data.setting_lists;
+                this.selected_setting_list = this.setting_lists[0];
+            })
     },
     beforeRouteLeave() {
         this.notifications.forEach((notify) => {
