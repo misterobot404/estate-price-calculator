@@ -425,13 +425,14 @@ export default {
                         row.table =this.coef_table.rows[i][key];
                     }
                     else{
-                        row.changes.push(this.coef_table.rows[i][key])
+                        let myRe = "^[-]?[0-9]+[.][0-9]+";
+                        row.changes.push(myRe.exec(this.coef_table.rows[i][key])[0])
                     }
-
-
                 });
                 this.changes.push(row);
             }
+
+
         },
         changeValue(table, value, index){
 
@@ -442,6 +443,7 @@ export default {
 
             });
             this.calc(this.object,this.analogs, this.settings, this.changes);
+            console.log(this.changes);
         },
 
         // Формируем результирующую для вывода пользователю таблицу с кор-ми коэф-ми
