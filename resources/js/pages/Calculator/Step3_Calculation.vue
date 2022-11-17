@@ -65,26 +65,6 @@
                                 <q-input type ="number" v-model.number="scope.value" dense autofocus @keyup.enter="this.changeValue(props.row.name, scope.value, keys)"></q-input>
                             </q-popup-edit>
                         </q-td>
-                        <q-td>
-                            <div>
-                                <q-btn
-                                    v-if="settings.find(el => el.id === base_settings.find(setting => setting.Название === props.row[0])?.id)"
-                                    flat
-                                    round
-                                    icon="check_box"
-                                    class="text-grey-7"
-                                    @click="disableCoof(props.row[0])"
-                                />
-                                <q-btn
-                                    v-else
-                                    flat
-                                    round
-                                    icon="check_box_outline_blank"
-                                    class="text-grey-7"
-                                    @click="enableCoof(props.row[0])"
-                                />
-                            </div>
-                        </q-td>
                     </q-tr>
                 </template>
             </q-table>
@@ -518,12 +498,7 @@ export default {
                     field: row => row[index + 1],
                 })
             })
-            columns.push({
-                name: 'delete',
-                label: 'Состояние',
-                align: 'center',
-                style: 'width: 100px'
-            })
+
 
             return {
                 columns: columns,
