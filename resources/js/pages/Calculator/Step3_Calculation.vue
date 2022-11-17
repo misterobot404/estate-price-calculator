@@ -419,7 +419,8 @@ export default {
         setStartChanges(){
             for(let i =0; i<this.coef_table.rows.length;i++){
                 let row = {table: null, changes:[]};
-                this.coef_table.rows[i].forEach(key=>{
+                let keys = Object.keys(this.coef_table.rows[i]);
+                keys.forEach(key=>{
                     if(key === 'name'){
                         row.table =this.coef_table.rows[i][key];
                     }
