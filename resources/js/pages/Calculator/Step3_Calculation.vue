@@ -67,6 +67,28 @@
                         </q-td>
                     </q-tr>
                 </template>
+                <template v-slot:body-cell-delete="props">
+                    <q-td :props="props">
+                        <div>
+                            <q-btn
+                                v-if="settings.find(el => el.id === base_settings.find(setting => setting.Название === props.row[0])?.id)"
+                                flat
+                                round
+                                icon="check_box"
+                                class="text-grey-7"
+                                @click="disableCoof(props.row[0])"
+                            />
+                            <q-btn
+                                v-else
+                                flat
+                                round
+                                icon="check_box_outline_blank"
+                                class="text-grey-7"
+                                @click="enableCoof(props.row[0])"
+                            />
+                        </div>
+                    </q-td>
+                </template>
             </q-table>
 
             <div class="text-bold text-h8 q-mb-sm q-mt-lg">Вес корректировок</div>
