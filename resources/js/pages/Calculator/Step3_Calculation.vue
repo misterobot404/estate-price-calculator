@@ -61,8 +61,8 @@
                     <q-tr :props="props">
                         <q-td v-for="(el, keys) in props.row" :key="keys" :props="props">
                             {{ el }}
-                            <q-popup-edit v-model.number="props.row[keys]" v-slot="scope">
-                                <q-input type ="number" v-model.number="scope.value" dense autofocus @keyup.enter="this.changeValue(props.row.name, scope.value, keys)"></q-input>
+                            <q-popup-edit v-model="props.row[keys]" v-slot="scope">
+                                <q-input v-model="scope.value" dense autofocus @keyup.enter="this.changeValue(props.row.name, scope.value, keys)"></q-input>
                             </q-popup-edit>
                         </q-td>
                     </q-tr>
