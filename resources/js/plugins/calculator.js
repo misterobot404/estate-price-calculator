@@ -189,7 +189,7 @@ let checkReliability = (analogArr, average) => {
 }
 
 //Оценка аналога по коэффициэнтам
-let findAnalogCoefficients = (reference, analog, cTables, changes = null) => {
+let findAnalogCoefficients = (reference, analog, cTables, changes, index) => {
 
     //нач цена
     analog.cCalculation.cPrice = analog.priceM;
@@ -201,13 +201,19 @@ let findAnalogCoefficients = (reference, analog, cTables, changes = null) => {
         analog.cCalculation.addCoefficient();
         //Если таблица процентная
 
-        if(changes !== null && changes.tableName === cTables[i].tableName){
-            analog.cCalculation.appliedC[i].cValue = cTables[i].tableType ? changes.value : changes.value / analog.cCalculation.cPrice;
 
-        }else{
-            analog.cCalculation.appliedC[i].cValue = cTables[i].tableType ? cTables[i].getTableValue(reference, analog) : cTables[i].getTableValue(reference, analog) / analog.cCalculation.cPrice;
 
+        analog.cCalculation.appliedC[i].cValue = cTables[i].tableType ? cTables[i].getTableValue(reference, analog) : cTables[i].getTableValue(reference, analog) / analog.cCalculation.cPrice;
+        for(let j =0; j<changes.length; j++) {
+            if(changes[i].table === cTables[i].tableName) {
+                if(changes[i].change[index] !== analog.cCalculation.appliedC[i].cValue){
+                    analog.cCalculation.appliedC[i].cValue = changes[i].change[index];
+                    break;
+                }
+                break;
+            }
         }
+
 
         analog.cCalculation.cPrice += analog.cCalculation.cPrice * analog.cCalculation.appliedC[i].cValue;
         //Записываем цену в таблицу для вывода
@@ -335,12 +341,7 @@ let findEtalonPrice = (reference, analogArr, tables, chage = null) => {
 
     //Расчет корректировок для аналогов
     for (let i = 0; i < class_analog_arr.length; i++) {
-        if(chage !== null && chage.analogNum == i){
-            findAnalogCoefficients(Reference, class_analog_arr[i], cTables, chage);
-        }else{
-            findAnalogCoefficients(Reference, class_analog_arr[i], cTables);
-        }
-
+        findAnalogCoefficients(Reference, class_analog_arr[i], cTables, chage, i);
     }
 
     //Расчет веса аналогов
