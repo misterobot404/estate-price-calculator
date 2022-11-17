@@ -519,12 +519,6 @@ export default {
                     field: row => row[index + 1],
                 })
             })
-            columns.push({
-                name: 'delete',
-                label: 'Состояние',
-                align: 'center',
-                style: 'width: 100px'
-            })
 
             return {
                 columns: columns,
