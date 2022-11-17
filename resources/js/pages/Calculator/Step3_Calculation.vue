@@ -419,9 +419,9 @@ export default {
         setStartChanges(){
             for(let i =0; i<this.coef_table.rows.length;i++){
                 let row = {table: null, changes:[]};
-                this.coef_table.rows[i].forEach((value, key)=>{
+                this.coef_table.rows[i].forEach(key=>{
                     if(key === 'name'){
-                        row.table =value;
+                        row.table =this.coef_table.rows[i][key];
                     }
                     else{
                         row.changes.push(value)
