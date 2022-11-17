@@ -329,9 +329,14 @@ let findEtalonPrice = (reference, analogArr, tables, chage = null) => {
     })
 
     //Преобразование таблиц из json
-    console.log(tables);
-    let cNames = tables.map(el => el.Название);
-    let cTables = tables.map(el => JSON.parse(el.Данные));
+    let cNames = [];
+    let cTables =[];
+    for(let i=0;i<tables.length;i++){
+        if(typeof tables[i]!== "undefined"){
+            cNames.push = tables[i].Название;
+            cTables.push = JSON.parse(tables[i].Данные);
+        }
+    }
     for(let i=0;i<cTables.length; i++){
         cTables[i] = new CoefficientsTable(cTables[i].table,cNames[i], cTables[i].isPercent, cTables[i].rowcolNames,cTables[i].pharamName);
     }
