@@ -261,7 +261,7 @@ export default {
                     // Проходимся по всему массиву объектов в пуле и расчитываем цену
                     this.objects_of_pool.forEach(el => {
                         // Объект - элементы в пуле
-                        let res_calc = this.calc(el, [this.object], this.settings);
+                        let res_calc = this.calc(el, [this.object], this.settings, this.changes);
 
                         operations.push(
                             {
@@ -343,9 +343,9 @@ export default {
             const status = exportFile('Выгрузка_по_расчёту.csv', '\n' + "ufeff" + content1 + '\n\n\n\n' + content2 + '\n\n\n\n' + content3, 'text/csv')
         },
 
-        calc(object, analogs, settings) {
+        calc(object, analogs, settings, changes) {
 
-            return calc_func.findEtalonPrice(object, analogs, settings);
+            return calc_func.findEtalonPrice(object, analogs, settings, changes);
         },
 
         loadData() {
@@ -363,7 +363,7 @@ export default {
                             this.base_settings = [...this.settings];
 
                             // Расчитываем
-                            this.res_calc = this.calc(this.object, this.analogs, this.settings);
+                            this.res_calc = this.calc(this.object, this.analogs, this.settings,this.changes);
                             this.showAlert();
                             // Обновляем итоговую таблицу с кор-ми на вывод пользователю
                             this.coef_table = this.setCoefTable();
@@ -390,7 +390,7 @@ export default {
             let el_index = this.settings.findIndex(setting => setting.Название === coof_name);
             this.settings.splice(el_index, 1);
 
-            this.res_calc = this.calc(this.object, this.analogs, this.settings);
+            this.res_calc = this.calc(this.object, this.analogs, this.settings,this.changes);
 
             this.coef_table = null;
             this.coef_table = this.setCoefTable();
@@ -406,7 +406,7 @@ export default {
 
             this.settings.push(el);
 
-            this.res_calc = this.calc(this.object, this.analogs, this.settings);
+            this.res_calc = this.calc(this.object, this.analogs, this.settings, this.changes);
 
             this.coef_table = null;
             this.coef_table = this.setCoefTable();

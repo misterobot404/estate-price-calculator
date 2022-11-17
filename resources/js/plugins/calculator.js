@@ -204,13 +204,15 @@ let findAnalogCoefficients = (reference, analog, cTables, changes, index) => {
 
 
         analog.cCalculation.appliedC[i].cValue = cTables[i].tableType ? cTables[i].getTableValue(reference, analog) : cTables[i].getTableValue(reference, analog) / analog.cCalculation.cPrice;
-        for(let j =0; j<changes.length; j++) {
-            if(changes[i].table === cTables[i].tableName) {
-                if(changes[i].change[index] !== analog.cCalculation.appliedC[i].cValue){
-                    analog.cCalculation.appliedC[i].cValue = changes[i].change[index];
+        if(changes !== null) {
+            for (let j = 0; j < changes.length; j++) {
+                if (changes[i].table === cTables[i].tableName) {
+                    if (changes[i].change[index] !== analog.cCalculation.appliedC[i].cValue) {
+                        analog.cCalculation.appliedC[i].cValue = changes[i].change[index];
+                        break;
+                    }
                     break;
                 }
-                break;
             }
         }
 
