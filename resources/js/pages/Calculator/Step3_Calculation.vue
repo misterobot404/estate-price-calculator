@@ -425,12 +425,13 @@ export default {
                         row.table =this.coef_table.rows[i][key];
                     }
                     else{
-                        let myRe = "^[-]?[0-9]+[.][0-9]+";
-                        row.changes.push(myRe.exec(this.coef_table.rows[i][key])[0])
+                        let myRe = new RegExp('^[-]?[0-9]+[.][0-9]+');
+                        row.changes.push((parseFloat(myRe.exec(this.coef_table.rows[i][key])[0])/100).toFixed(4));
                     }
                 });
                 this.changes.push(row);
             }
+            console.log(this.changes);
 
 
         },
