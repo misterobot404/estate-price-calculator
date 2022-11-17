@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/history/excel/{id}', [CalculationController::class, 'getExcel']);
+Route::get('/history/excel', [CalculationController::class, 'getGrowExcel']);
+
 
 Route::get('/ml/{user_id}', [CalculationController::class, 'getExcelWithML']);
 

@@ -27,6 +27,7 @@
                     </div>
                     <div class="q-mt-md">
                         <q-btn outline color="primary" icon="file_download" label="Выгрузить расчёт в .csv" @click="exportToCSV()"/>
+                        <q-btn label="Выгрузить расчёт в .excel" no-caps class="q-ml-sm" color="primary" flat  @click="exportToExcel()"/>
                     </div>
                 </q-card-section>
             </q-card>
@@ -233,6 +234,66 @@ export default {
             ).join('\r\n')
 
             const status = exportFile('Выгрузка_по_расчёту.csv', '\n' + "ufeff" + content1 + '\n\n\n\n' + content2 + '\n\n\n\n' + content3, 'text/csv')
+        },
+        exportToExcel() {
+            let wrapCsvValue = function (val, formatFn, row) {
+                let formatted = formatFn !== void 0
+                    ? formatFn(val, row)
+                    : val
+
+                formatted = formatted === void 0 || formatted === null
+                    ? ''
+                    : String(formatted)
+
+                formatted = formatted.split('"').join('""')
+                /**
+                 * Excel accepts \n and \r in strings, but some other CSV parsers do not
+                 * Uncomment the next two lines to escape new lines
+                 */
+                // .split('\n').join('\\n')
+                // .split('\r').join('\\r')
+
+                return `"${formatted}"`
+            }
+
+            let [rows1, columns1] = [this.extend_objects_table.rows, this.extend_objects_table.columns]
+            const content1 = [columns1.map(col => wrapCsvValue(col.label))].concat(
+                rows1.map(row => columns1.map(col => wrapCsvValue(
+                    typeof col.field === 'function'
+                        ? col.field(row)
+                        : row[col.field === void 0 ? col.name : col.field],
+                    col.format,
+                    row
+                )).join(','))
+            ).join('\r\n')
+
+            let [rows2, columns2] = [this.coef_table.rows, this.coef_table.columns]
+            const content2 = [columns2.map(col => wrapCsvValue(col.label))].concat(
+                rows2.map(row => columns2.map(col => wrapCsvValue(
+                    typeof col.field === 'function'
+                        ? col.field(row)
+                        : row[col.field === void 0 ? col.name : col.field],
+                    col.format,
+                    row
+                )).join(','))
+            ).join('\r\n')
+
+            let [rows3, columns3] = [this.extend_coef_table.rows, this.extend_coef_table.columns]
+            const content3 = [columns3.map(col => wrapCsvValue(col.label))].concat(
+                rows3.map(row => columns3.map(col => wrapCsvValue(
+                    typeof col.field === 'function'
+                        ? col.field(row)
+                        : row[col.field === void 0 ? col.name : col.field],
+                    col.format,
+                    row
+                )).join(','))
+            ).join('\r\n')
+
+            axios.post('/api/csvtoexcel', {
+                body: '\n' + "ufeff" + content1 + '\n\n\n\n' + content2 + '\n\n\n\n' + content3
+            }).then(() => {
+                window.open("/history/excel");
+            })
         },
     },
     computed: {

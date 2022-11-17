@@ -45,4 +45,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/history', [CalculationController::class, 'getHistory']);
     Route::get('/history/{pool_id}', [CalculationController::class, 'getHistoryPool']);
     Route::get('/history/operation/{operation_obj_id}', [CalculationController::class, 'getHistoryOperation']);
+
+    Route::post('/csvtoexcel', [CalculationController::class, 'getExcelLink']);
 });

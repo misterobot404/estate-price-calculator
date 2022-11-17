@@ -466,6 +466,27 @@ class CalculationController extends Controller
         return response()->download(public_path('excel/'.$pool->id.'.xlsx'));
     }
 
+    public function getGrowExcel()
+    {
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Csv');
+
+        $objPHPExcel = $reader->load('excel/filename.csv');
+        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel, 'Xlsx');
+        $objWriter->save('excel/excel_file.xlsx');
+
+        return response()->download(public_path('excel/excel_file.xlsx'));
+    }
+
+    public function getExcelLink()
+    {
+        Storage::disk('public')->put('filename.csv', request('body'));
+
+        return response()->json([
+            "message" => null,
+            "status" => true
+        ]);
+    }
+
     public function getExcelWithML($user_id)
     {
         // Текущая расчитываемая группа
