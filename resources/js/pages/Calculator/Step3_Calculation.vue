@@ -62,7 +62,7 @@
                         <q-td v-for="(el, keys) in props.row" :key="keys" :props="props">
                             {{ el }}
                             <q-popup-edit v-model="props.row[keys]" buttons v-slot="scope">
-                                <q-input v-model="scope.value" dense autofocus counter @keyup.enter="this.changeValue(props.row.name, scope.value, keys)"></q-input>
+                                <q-input v-model="" dense autofocus counter @keyup.enter="this.changeValue(props.row.name, scope.value, keys)"></q-input>
                             </q-popup-edit>
                         </q-td>
                     </q-tr>
@@ -453,18 +453,14 @@ export default {
                 });
                 this.changes.push(row);
             }
-            console.log(this.changes);
-
 
         },
         changeValue(table, value, index){
 
-            console.log(table);
-            console.log(value);
+
 
             let reg = new RegExp('[0-9]+$');
             let ind = reg.exec(index)[0]-1;
-            console.log(ind);
             this.changes.forEach((el, key)=>{
                 if(el.table === table){
                     this.changes[key].change[ind]=value;
@@ -509,7 +505,6 @@ export default {
                     rows.push(row);
                 }
             })
-            console.log(rows);
 
             columns.push({
                 name: 'name',
@@ -532,7 +527,6 @@ export default {
                 align: 'center',
                 style: 'width: 100px'
             })
-            console.log(columns);
 
             return {
                 columns: columns,
@@ -631,7 +625,6 @@ export default {
                 rows.push(row)
             });
 
-            console.log(rows);
             columns.push({
                 name: 'Параметр',
                 label: 'Параметр',
