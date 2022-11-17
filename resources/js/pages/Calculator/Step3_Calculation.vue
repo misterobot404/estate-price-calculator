@@ -417,9 +417,9 @@ export default {
             })
         },
         setStartChanges(){
-            this.coef_table.rows.forEach((el)=>{
+            for(let i =0; i<this.coef_table.rows.length;i++){
                 let row = {table: null, changes:[]};
-                el.forEach((value, key)=>{
+                this.coef_table.rows[i].forEach((value, key)=>{
                     if(key === 'name'){
                         row.table =value;
                     }
@@ -429,10 +429,8 @@ export default {
 
 
                 });
-
                 this.changes.push(row);
-
-            });
+            }
         },
         changeValue(table, value, index){
 
