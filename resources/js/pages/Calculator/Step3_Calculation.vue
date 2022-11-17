@@ -461,7 +461,7 @@ export default {
             let ind = reg.exec(index)[0]-1;
             this.changes.forEach((el, key)=>{
                 if(el.table === table){
-                    this.changes[key].change[ind]=value;
+                    this.changes[key].change[ind]=value/100;
                 }
 
             });
