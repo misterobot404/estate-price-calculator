@@ -57,27 +57,15 @@
                 hide-bottom
                 :card-style="{ padding: '18px 22px' }"
             >
-                <template v-slot:body-cell-delete="props">
-                    <q-td :props="props">
-                        <div>
-                            <q-btn
-                                v-if="settings.find(el => el.id === base_settings.find(setting => setting.Название === props.row[0])?.id)"
-                                flat
-                                round
-                                icon="check_box"
-                                class="text-grey-7"
-                                @click="disableCoof(props.row[0])"
-                            />
-                            <q-btn
-                                v-else
-                                flat
-                                round
-                                icon="check_box_outline_blank"
-                                class="text-grey-7"
-                                @click="enableCoof(props.row[0])"
-                            />
-                        </div>
-                    </q-td>
+                <template v-slot:body="props">
+                    <q-tr :props="props">
+                        <q-td v-for="(el, keys) in props.row" :key="keys" :props="props">
+                            {{ el }}
+                            <q-popup-edit v-model="props.row[keys]" buttons v-slot="scope">
+                                <q-input v-model="scope.value" dense autofocus counter @keyup.enter="scope.set">{{scope.value}}</q-input>
+                            </q-popup-edit>
+                        </q-td>
+                    </q-tr>
                 </template>
             </q-table>
 
@@ -104,6 +92,7 @@ export default {
         return {
             object: null,
             analogs: [],
+            changes:[],
 
             setting_lists: [],
             // Выбранный список кор-ок
@@ -378,6 +367,7 @@ export default {
                             this.showAlert();
                             // Обновляем итоговую таблицу с кор-ми на вывод пользователю
                             this.coef_table = this.setCoefTable();
+                            this.setStartChanges();
 
                             if (this.is_done) {
                                 this.$q.notify({
@@ -426,6 +416,34 @@ export default {
                 icon: 'announcement'
             })
         },
+        setStartChanges(){
+            this.coef_table.rows.forEach((el)=>{
+                let row = {table: null, changes:[]};
+                el.forEach((value, key)=>{
+                    if(key === 'name'){
+                        row.table =value;
+                    }
+                    else{
+                        row.changes.push(value)
+                    }
+
+
+                });
+
+                this.changes.push(row);
+
+            });
+        },
+        changeValue(table, value, index){
+
+            this.changes.forEach((el, key)=>{
+                if(el.table === table){
+                    this.changes[key].change[index]=value;
+                }
+
+            });
+            this.calc(this.object,this.analogs, this.settings, this.changes);
+        },
 
         // Формируем результирующую для вывода пользователю таблицу с кор-ми коэф-ми
         setCoefTable() {
@@ -438,25 +456,26 @@ export default {
                 let used_setting = this.res_calc.analog_changes_table.find(setting => setting.name === base_setting.Название);
                 if (used_setting) {
                     let row = {
-                        0: used_setting.name,
+                        name: used_setting.name,
                     };
                     this.analogs.forEach((el, index) => {
-                        row[index + 1] = used_setting.values[index];
+                        row['Аналог' + (index + 1)] = used_setting.values[index];
                     })
                     rows.push(row)
                 } else {
                     let row = {
-                        0: base_setting.Название,
+                        name: base_setting.Название,
                     };
                     this.analogs.forEach((el, index) => {
-                        row[index + 1] = "-";
+                        row['Аналог' + (index + 1)] = "-";
                     })
                     rows.push(row);
                 }
             })
+            console.log(rows);
 
             columns.push({
-                name: 'Название',
+                name: 'name',
                 label: 'Название',
                 align: 'left',
                 field: row => row[0],
@@ -464,7 +483,7 @@ export default {
             // Заголовки столбцов
             this.analogs.forEach((el, index) => {
                 columns.push({
-                    name: 'Аналог' + (index + 1),
+                    name:  'Аналог' + (index + 1),
                     label: 'Аналог ' + (index + 1),
                     align: 'left',
                     field: row => row[index + 1],
@@ -476,6 +495,7 @@ export default {
                 align: 'center',
                 style: 'width: 100px'
             })
+            console.log(columns);
 
             return {
                 columns: columns,
@@ -574,6 +594,7 @@ export default {
                 rows.push(row)
             });
 
+            console.log(rows);
             columns.push({
                 name: 'Параметр',
                 label: 'Параметр',
