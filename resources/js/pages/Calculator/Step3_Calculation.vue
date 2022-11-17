@@ -387,6 +387,7 @@ export default {
                             this.showAlert();
                             // Обновляем итоговую таблицу с кор-ми на вывод пользователю
                             this.coef_table = this.setCoefTable();
+                            this.setStartChanges();
 
                             if (this.is_done) {
                                 this.$q.notify({
@@ -436,7 +437,7 @@ export default {
             })
         },
         setStartChanges(){
-            console.log(this.coef_table.rows);
+            console.log(this.coef_table);
             for(let i =0; i<this.coef_table.rows.length;i++){
                 let row = {table: null, change:[]};
                 let keys = Object.keys(this.coef_table.rows[i]);
@@ -646,7 +647,6 @@ export default {
     watch: {
         selected_setting_list(v) {
             this.loadData();
-            this.setStartChanges();
         },
         isLoading(v) {
             if (v) {
