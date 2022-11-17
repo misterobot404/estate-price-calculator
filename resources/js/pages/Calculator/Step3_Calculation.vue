@@ -62,7 +62,7 @@
                         <q-td v-for="(el, keys) in props.row" :key="keys" :props="props">
                             {{ el }}
                             <q-popup-edit v-model="props.row[keys]" buttons v-slot="scope">
-                                <q-input v-model="scope.value" dense autofocus counter @keyup.enter="scope.set">{{scope.value}}</q-input>
+                                <q-input v-model="scope.value" dense autofocus counter @keyup.enter="this.changeValue(props.key, scope.value, keys)"></q-input>
                             </q-popup-edit>
                         </q-td>
                     </q-tr>
@@ -459,6 +459,9 @@ export default {
         },
         changeValue(table, value, index){
 
+            console.log(table);
+            console.log(value);
+            console.log(index);
             this.changes.forEach((el, key)=>{
                 if(el.table === table){
                     this.changes[key].change[index]=value;
