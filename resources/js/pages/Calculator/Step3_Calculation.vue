@@ -65,7 +65,7 @@
                                 <q-input type ="number" v-model.number="scope.value" dense autofocus @keyup.enter="this.changeValue(props.row.name, scope.value, keys)"></q-input>
                             </q-popup-edit>
                         </q-td>
-                        <q-td :props="props">
+                        <q-td>
                             <div>
                                 <q-btn
                                     v-if="settings.find(el => el.id === base_settings.find(setting => setting.Название === props.row[0])?.id)"
@@ -86,7 +86,6 @@
                             </div>
                         </q-td>
                     </q-tr>
-
                 </template>
             </q-table>
 
