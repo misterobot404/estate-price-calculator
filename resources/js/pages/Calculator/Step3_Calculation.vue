@@ -462,8 +462,6 @@ export default {
             console.log(table);
             console.log(value);
 
-
-
             let reg = new RegExp('[0-9]+$');
             let ind = reg.exec(index)[0]-1;
             console.log(ind);
@@ -473,8 +471,15 @@ export default {
                 }
 
             });
-            this.calc(this.object,this.analogs, this.settings, this.changes);
-            console.log(this.changes);
+            this.res_calc = this.calc(this.object,this.analogs, this.settings, this.changes);
+
+            this.coef_table = null;
+            this.coef_table = this.setCoefTable();
+
+            this.$q.notify({
+                message: 'Цена пересчитана относительно кор-их коэффициентов',
+                icon: 'announcement'
+            })
         },
 
         // Формируем результирующую для вывода пользователю таблицу с кор-ми коэф-ми
