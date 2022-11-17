@@ -9,6 +9,7 @@ use App\Models\Operation;
 use App\Models\OperationEl;
 use App\Models\Pool;
 use App\Models\Setting;
+use App\Models\SettingList;
 use App\Models\TypeOfNumberRooms;
 use App\Models\TypeOfSegment;
 use App\Models\TypeOfWall;
@@ -333,12 +334,15 @@ class CalculationController extends Controller
     public function getOperation($operation_id)
     {
         $operation = Operation::find($operation_id)->orderBy('id', 'desc')->first();
+        // Получаем самый первый список, принадлежащий пользователю
+        $setting_list = SettingList::where('user_id', auth()->id())->orderBy('id', 'desc')->first();
+
         return response()->json([
             "message" => null,
             "data" => [
                 'operation' => $operation,
                 'object' => ObjectOfPool::where('id', $operation['Эталон'])->first(),
-                'settings' => Setting::where('user_id', auth()->id())->where('Год', 2022)->get(),
+                'settings' => Setting::where('user_id', auth()->id())->where('Справочники_списки_id', $setting_list->id)->get(),
             ]
         ]);
     }
